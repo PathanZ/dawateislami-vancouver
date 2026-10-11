@@ -117,7 +117,7 @@
     var todayIdx=(mk===monthKey)?now.d-1:0;
     document.getElementById('todayBtn').addEventListener('click',function(){select(todayIdx,true);});
     document.getElementById('shareBtn').addEventListener('click',function(){
-      var sh={title:'Faizan e Madina Vancouver prayer times',url:location.href};
+      var sh={title:'Faizan-e-Madina Surrey prayer times',url:location.href};
       if(navigator.share){navigator.share(sh).catch(function(){});}
       else if(navigator.clipboard){navigator.clipboard.writeText(location.href).then(function(){alert('Link copied');});}
     });
