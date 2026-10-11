@@ -1,0 +1,325 @@
+"""Assemble the site pages from shared header/footer. Run: python3 build.py"""
+import re
+from pathlib import Path
+
+ROOT = Path(__file__).parent
+
+BN = "81933 5662 RR0001"
+ADDRESS = "7062 134 Street, Surrey, BC"
+MAP_Q = "Faizan+e+Madina,+7062+134+Street,+Surrey,+BC"
+
+
+def tbc(label="TBC"):
+    return f'<span class="draft">{label}</span>'
+
+
+def head(title, desc):
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b48">
+<meta name="description" content="{desc}">
+<title>{title}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%8C%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Marcellus&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+'''
+
+
+def header(current):
+    def link(href, text, key):
+        cur = ' aria-current="page"' if key == current else ""
+        return f'<a href="{href}"{cur}>{text}</a>'
+    return f'''<div class="topbar">
+  <div class="wrap">
+    <span class="arabic bismillah" lang="ar">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
+    <span class="next" id="nextPrayer" aria-live="polite"></span>
+  </div>
+</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img src="assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami Canada"></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="nav" id="nav" aria-label="Main">
+      {link("index.html#about", "About", "about")}
+      {link("index.html#services", "Services", "services")}
+      {link("prayer-times.html", "Prayer times", "prayer")}
+      {link("index.html#ijtima", "Weekly Ijtima", "ijtima")}
+      {link("index.html#centres", "Centres", "centres")}
+      {link("index.html#contact", "Contact", "contact")}
+      <a class="btn btn-gold" href="index.html#donate">Donate</a>
+    </nav>
+  </div>
+</header>
+'''
+
+
+FOOTER = f'''<footer class="site-footer" id="contact">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <img class="footer-logo" src="assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami Canada">
+        <p>A global, non-political movement spreading the teachings of the Qur'an and Sunnah.</p>
+        <p class="bn">Registered Canadian charity · BN {BN}</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li>Faizan e Madina<br>{ADDRESS}</li>
+          <li>Phone: {tbc()}</li>
+          <li>Email: {tbc()}</li>
+          <li>WhatsApp: {tbc()}</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Quick links</h4>
+        <ul>
+          <li><a href="prayer-times.html">Prayer times</a></li>
+          <li><a href="index.html#ijtima">Weekly Ijtima</a></li>
+          <li><a href="index.html#services">Services</a></li>
+          <li><a href="index.html#donate">Donate</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Dawat-e-Islami worldwide</h4>
+        <ul>
+          <li><a href="https://www.dawateislami.net/" target="_blank" rel="noopener">Global website</a></li>
+          <li><a href="https://www.dawateislamiusa.org/" target="_blank" rel="noopener">Dawat-e-Islami USA</a></li>
+          <li><a href="https://dawateislami.co.uk/" target="_blank" rel="noopener">Dawat-e-Islami UK</a></li>
+          <li><a href="https://www.fatwaqa.com/en" target="_blank" rel="noopener">Ask a question (Darul Ifta)</a></li>
+        </ul>
+        <p class="social">Social media: {tbc("Links TBC")}</p>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© <span id="year">2026</span> Dawat-e-Islami Canada</span>
+      <span>Draft preview for management review</span>
+    </div>
+  </div>
+</footer>
+<script src="assets/prayer-data.js"></script>
+<script src="assets/main.js"></script>
+</body>
+</html>
+'''
+
+ICON = {
+    "salah": '<path d="M3 20h18M5 20V11l7-6 7 6v9M10 20v-5h4v5"/>',
+    "jummah": '<circle cx="8" cy="9" r="3"/><circle cx="16" cy="9" r="3"/><path d="M2 20c.8-3 3-5 6-5s5.2 2 6 5M14 15.2c.6-.1 1.3-.2 2-.2 3 0 5.2 2 6 5"/>',
+    "ijtima": '<path d="M12 3v3M5 21v-6a7 7 0 0114 0v6M3 21h18M9 21v-3h6v3"/>',
+    "school": '<rect x="3" y="5" width="18" height="15" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    "courses": '<path d="M4 4h12l4 4v12H4zM8 12h8M8 16h5"/>',
+    "quran": '<path d="M4 5h7a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-7a2 2 0 00-2 2v12a2 2 0 012-2h7z"/>',
+    "sisters": '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/>',
+    "online": '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4M10 9l5 2-5 2z"/>',
+}
+
+
+def service(icon, title, text):
+    return f'''        <article class="program">
+          <div class="ic" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{ICON[icon]}</svg></div>
+          <h3>{title}</h3>
+          <p>{text}</p>
+        </article>'''
+
+
+SERVICES = "\n".join([
+    service("salah", "5 daily prayers", "Jama'at for all five daily prayers at Faizan e Madina, Surrey."),
+    service("jummah", "Two Jummah prayers", "Two Friday congregations, at 1:30 PM and 3:30 PM."),
+    service("ijtima", "Weekly Ijtima", "Every Thursday at 7:00 PM: tilawat, naat, bayan, zikr, dua and salam."),
+    service("school", "Weekend Islamic School", "Faith, character and Qur'an for children who attend school during the week."),
+    service("courses", "Free monthly courses", "Short courses on everyday Islamic knowledge, open to everyone."),
+    service("quran", "Qur'an classes & Hifz", "Learn to read the Qur'an with tajweed, and memorise it in the Hifz program."),
+    service("sisters", "Sisters-only Halaqah", "Classes and gatherings run by and for Islamic sisters."),
+    service("online", "Faizan Online Academy", "Live online Qur'an and Islamic studies classes you can join from home."),
+])
+
+PILLARS = "\n".join(
+    f'<div class="pillar"><span class="arabic" lang="ar">{ar}</span><h3>{en}</h3><p>{txt}</p></div>'
+    for ar, en, txt in [
+        ("شَهَادَة", "Shahadah", "Belief in the oneness of Allah and that Muhammad ﷺ is His final messenger."),
+        ("صَلَاة", "Salah", "Worshipping Allah through the five daily prayers."),
+        ("زَكَاة", "Zakat", "Giving 2.5% of eligible wealth each year to those in need."),
+        ("صَوْم", "Sawm", "Fasting from dawn to sunset through the month of Ramadan."),
+        ("حَجّ", "Hajj", "Pilgrimage to Makkah once in a lifetime, for those who are able."),
+    ])
+
+IJTIMA_PARTS = "".join(f"<li>{p}</li>" for p in ["Tilawat", "Naat", "Bayan", "Zikr", "Dua", "Salam"])
+
+HOME = f'''<main id="top">
+  <section class="hero">
+    <!-- Hero video goes here later: <video class="hero-video" autoplay muted loop playsinline poster="assets/img/hero.jpg"><source src="assets/video/hero.mp4" type="video/mp4"></video> -->
+    <div class="wrap">
+      <div>
+        <p class="arabic" lang="ar">اَلسَّلَامُ عَلَيْكُمْ</p>
+        <h1>Welcome to Dawat-e-Islami Canada</h1>
+        <p class="tagline">Connect · Learn · Grow · Together</p>
+        <p class="lead">Daily prayers, Qur'an learning and weekly gatherings for brothers, sisters and children, starting from our centre in Surrey, British Columbia.</p>
+        <div class="actions">
+          <a class="btn btn-gold" href="#donate">Donate now</a>
+          <a class="btn btn-line" href="prayer-times.html">Prayer timetable</a>
+        </div>
+      </div>
+      <aside class="today" aria-labelledby="todayTitle">
+        <div class="today-head">
+          <h2 id="todayTitle">Today's prayers</h2>
+          <span class="today-date" id="todayDate"></span>
+        </div>
+        <p class="today-where">Faizan e Madina, Surrey</p>
+        <div class="today-cols"><span>Prayer</span><span>Begins</span><span>Jama'at</span></div>
+        <ul class="today-list" id="todayList"></ul>
+        <div class="today-foot">
+          <span>Jummah: 1:30 PM &amp; 3:30 PM</span>
+          <a href="prayer-times.html">Full timetable</a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="block" id="ijtima">
+    <div class="wrap ijtima">
+      <div>
+        <div class="head left">
+          <p class="kicker">Every Thursday</p>
+          <h2>Weekly Ijtima, open to everyone</h2>
+          <div class="ornament" aria-hidden="true">✦</div>
+        </div>
+        <p>Join us every week for a spiritual gathering with recitation, a bayan on the topic of the week, remembrance of Allah and a heartfelt dua.</p>
+        <ul class="parts">{IJTIMA_PARTS}</ul>
+        <ul class="facts">
+          <li><b>When</b><span>Thursdays at 7:00 PM</span></li>
+          <li><b>Where</b><span>Faizan e Madina, {ADDRESS}</span></li>
+          <li><b>Also</b><span>Dinner served · separate arrangement for sisters</span></li>
+        </ul>
+      </div>
+      <div class="poster-slot">
+        <div><strong>This week's poster</strong><span>Upload each week's Ijtima poster here</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block alt" id="about">
+    <div class="wrap about">
+      <div>
+        <div class="head left">
+          <p class="kicker">About us</p>
+          <h2>Part of the global family of Dawat-e-Islami</h2>
+          <div class="ornament" aria-hidden="true">✦</div>
+        </div>
+        <p>Dawat-e-Islami was founded in 1981 in Karachi by Ameer-e-Ahl-e-Sunnat, Maulana Muhammad Ilyas Attar Qadri. Today it serves communities around the world through Qur'an education, Islamic scholarship and welfare work.</p>
+        <p>Dawat-e-Islami Canada brings that work to communities across the country. Its mission follows the movement's motto: <em>"I must strive to reform myself and the people of the entire world."</em></p>
+        <p>{tbc("Add: a few lines about Dawat-e-Islami Canada's history and centres")}</p>
+      </div>
+      <div class="photo-slot">
+        <div><strong>Photo of the masjid</strong><span>To be added</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="services">
+    <div class="wrap">
+      <div class="head">
+        <p class="kicker">Our services to the community</p>
+        <h2>What we offer</h2>
+        <div class="ornament" aria-hidden="true">✦</div>
+        <p>At Faizan e Madina, Surrey. All programs are open to the community.</p>
+      </div>
+      <div class="programs four">
+{SERVICES}
+      </div>
+    </div>
+  </section>
+
+  <section class="block hadees" aria-labelledby="hadeesTitle">
+    <div class="wrap">
+      <p class="kicker" id="hadeesTitle">Hadees of the week</p>
+      <p class="arabic" lang="ar">خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</p>
+      <blockquote>The best among you is the one who learns the Qur'an and teaches it.</blockquote>
+      <cite>Sahih al-Bukhari, Hadith 5027</cite>
+    </div>
+  </section>
+
+  <section class="block alt" id="donate">
+    <div class="wrap donate">
+      <div>
+        <div class="head left">
+          <p class="kicker">Support us</p>
+          <h2>Your donation keeps the masjid open</h2>
+          <div class="ornament" aria-hidden="true">✦</div>
+        </div>
+        <p>Donations pay for the building, utilities, Qur'an classes and community programs. Sadaqah, Zakat and Fitrana are all accepted.</p>
+        <p class="hadith">"Charity does not decrease wealth." <span>Sahih Muslim, 2588</span></p>
+        <p class="muted">Dawat-e-Islami Canada is a registered Canadian charity (BN {BN}). Official tax receipts are issued for eligible donations.</p>
+      </div>
+      <div class="give">
+        <h3>Ways to give</h3>
+        <a class="btn btn-green wide" href="#donate" aria-disabled="true">Donate online {tbc("link TBC")}</a>
+        <div class="etransfer">
+          <b>Interac e-Transfer</b>
+          <span>{tbc("Email TBC")}</span>
+          <small>For a tax receipt, include your full name and mailing address in the message.</small>
+        </div>
+        <div class="etransfer">
+          <b>In person</b>
+          <span>At Faizan e Madina after any prayer</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block tint" id="pillars">
+    <div class="wrap">
+      <div class="head">
+        <p class="kicker">Discover Islam</p>
+        <h2>The five pillars of Islam</h2>
+        <div class="ornament" aria-hidden="true">✦</div>
+      </div>
+      <div class="pillars">
+{PILLARS}
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="centres">
+    <div class="wrap visit">
+      <div>
+        <div class="head left">
+          <p class="kicker">Our centres</p>
+          <h2>Visit Faizan e Madina, Surrey</h2>
+          <div class="ornament" aria-hidden="true">✦</div>
+        </div>
+        <ul>
+          <li><b>Province</b><span>British Columbia</span></li>
+          <li><b>Address</b><span>{ADDRESS}</span></li>
+          <li><b>Open</b><span>Daily for all five prayers</span></li>
+          <li><b>Phone</b><span>{tbc()}</span></li>
+        </ul>
+        <p class="muted">More centres across Canada will be added here.</p>
+        <a class="btn btn-green" href="https://www.google.com/maps/search/?api=1&amp;query={MAP_Q}" target="_blank" rel="noopener">Get directions</a>
+      </div>
+      <div class="map-slot">
+        <iframe title="Map of Faizan e Madina, Surrey" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q={MAP_Q}&amp;output=embed"></iframe>
+      </div>
+    </div>
+  </section>
+</main>
+'''
+
+pt_src = (ROOT / "prayer-times.html").read_text()
+PT_MAIN = re.search(r"<main>.*?</main>\n", pt_src, re.S).group(0)
+PT_MAIN = PT_MAIN.replace("Hanafi method · Surrey, BC", "Hanafi method · Faizan e Madina, Surrey, BC")
+
+(ROOT / "index.html").write_text(
+    head("Dawat-e-Islami Canada | Faizan e Madina, Surrey",
+         "Dawat-e-Islami Canada: prayer times, weekly Ijtima, Qur'an classes and donations at Faizan e Madina, Surrey, BC.")
+    + header("") + HOME + FOOTER)
+(ROOT / "prayer-times.html").write_text(
+    head("Prayer times | Dawat-e-Islami Canada",
+         "Monthly prayer and jama'at times for Faizan e Madina, Surrey (Hanafi).")
+    + header("prayer") + PT_MAIN + FOOTER)
+print("built")

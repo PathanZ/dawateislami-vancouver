@@ -186,3 +186,38 @@ tbody tr.is-fri td:nth-child(2){color:var(--green);font-weight:700}
   .brand-sub{font-size:11.5px}
   .brand-mark{width:40px;height:40px}
 }
+
+/* ---- Dawat-e-Islami Canada rebrand ---- */
+.logo{display:block;line-height:0}
+.logo img{height:52px;width:auto}
+@media (max-width:520px){.logo img{height:40px}}
+.head.left{text-align:left;margin:0 0 20px}
+.head.left .ornament{justify-content:flex-start}
+.tagline{font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-size:14px;margin:-6px 0 14px}
+.today-where{margin:-6px 0 10px;color:var(--green);font-weight:700;font-size:14.5px}
+.programs.four{grid-template-columns:repeat(4,1fr)}
+@media (max-width:1000px){.programs.four{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.programs.four{grid-template-columns:1fr}}
+.ijtima{display:grid;grid-template-columns:1.1fr .9fr;gap:44px;align-items:center}
+.ijtima p{max-width:36em}
+.parts{list-style:none;display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:16px 0 20px}
+.parts li{background:var(--green-soft);color:var(--green);font-weight:700;border-radius:999px;padding:6px 14px;font-size:15px}
+.facts{list-style:none;padding:0;margin:0}
+.facts li{display:grid;grid-template-columns:80px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.facts b{color:var(--muted);font-weight:600}
+.poster-slot,.photo-slot{aspect-ratio:1/1;border-radius:var(--radius);background:var(--green) var(--pattern);display:grid;place-items:center;color:#f3e7bd;text-align:center;padding:20px;border:6px solid #fff;box-shadow:0 10px 30px rgba(4,58,46,.15)}
+.photo-slot{aspect-ratio:4/3}
+.poster-slot strong,.photo-slot strong{font-family:"Marcellus",Georgia,serif;font-size:22px;font-weight:400;display:block}
+.poster-slot span,.photo-slot span{font-size:15px}
+@media (max-width:860px){.ijtima{grid-template-columns:1fr}.poster-slot{max-width:420px}}
+.hadith{font-family:"Marcellus",Georgia,serif;font-size:21px;color:var(--green-deep)}
+.hadith span{display:block;font-family:"Source Sans 3",sans-serif;font-size:14px;color:var(--muted)}
+.muted{color:var(--muted)}
+.give .wide{display:block;text-align:center;margin-bottom:16px}
+.give .wide .draft{margin-left:6px}
+.etransfer{display:grid;gap:2px;padding:12px 0;border-top:1px solid var(--line)}
+.etransfer small{color:var(--muted);font-size:13.5px}
+.site-footer .footer-logo{width:220px;height:auto;margin-bottom:14px}
+.site-footer p{margin:0 0 10px;max-width:26em}
+.site-footer .bn{color:var(--gold);font-weight:700;font-size:14.5px}
+.site-footer .social{margin-top:14px}
