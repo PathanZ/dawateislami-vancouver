@@ -21,12 +21,44 @@ def tbc(label="TBC"):
 # ---- Centres in Canada -------------------------------------------------------
 # page: the centre's own page, or None while it has no page yet
 CENTRES = [
-    {"province": "British Columbia", "city": "Vancouver", "name": "Faizan e Madina",
-     "address": "7062 134 Street, Surrey, BC", "page": "vancouver.html",
+    # British Columbia
+    {"province": "British Columbia", "city": "Vancouver", "name": "Faizan-e-Madina Masjid",
+     "address": "7062 134 St, Surrey, BC V3W 4T2", "phone": "+1 (778) 895-0886", "page": "vancouver.html",
      "note": "Daily prayers · Weekly Ijtima · Weekend Islamic School"},
+    # Alberta
+    {"province": "Alberta", "city": "Calgary", "name": "Faizan-e-Madina",
+     "address": "32 Westwinds Crescent NE, Calgary, AB T3J 5H2", "phone": "+1 (403) 618-5408", "page": None, "note": ""},
+    {"province": "Alberta", "city": "Calgary", "name": "Faizan-e-Makkah",
+     "address": "4250 109 Ave NE, Calgary, AB T3N 1Z3", "phone": "+1 (403) 618-5408", "page": None, "note": ""},
+    {"province": "Alberta", "city": "Edmonton", "name": "Faizan-e-Madina Edmonton",
+     "address": "11809 96 St, Edmonton, AB T5G 1V4", "phone": "+1 (780) 729-6492", "page": None, "note": ""},
+    # Saskatchewan
+    {"province": "Saskatchewan", "city": "Regina", "name": "Faizan-e-Madina Islamic Center",
+     "address": "1169 Athol St, Regina, SK S4T 3C3", "phone": "+1 (438) 401-0782", "page": None, "note": ""},
+    # Manitoba
+    {"province": "Manitoba", "city": "Winnipeg", "name": "Faizan-e-Madina Islamic Centre",
+     "address": "585 St Anne's Rd, Winnipeg, MB R2M 5R5", "phone": "+1 (204) 998-1979", "page": None, "note": ""},
+    {"province": "Manitoba", "city": "Winnipeg", "name": "Faizan-e-Makkah",
+     "address": "509 Trans-Canada Hwy, Winnipeg, MB R2M 3L2", "phone": "+1 (204) 998-1979", "page": None,
+     "note": "Under construction"},
+    # Ontario
+    {"province": "Ontario", "city": "East York (Thorncliffe)", "name": "Faizan-e-Attar",
+     "address": "49 Thorncliffe Park Dr, Unit 120, East York, ON M4H 1J6", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
+    {"province": "Ontario", "city": "Etobicoke", "name": "Faizan-e-Madina Etobicoke",
+     "address": "595 Albion Rd, Etobicoke, ON M9V 1A1", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
+    {"province": "Ontario", "city": "Hamilton", "name": "Faizan-e-Madina Hamilton",
+     "address": "1202 Dunsmure Rd, Hamilton, ON L8H 1L4", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
+    {"province": "Ontario", "city": "Ottawa", "name": "Faizan-e-Madina Islamic Center",
+     "address": "415 McArthur Ave, Ottawa, ON K1K 1G5", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
+    # Quebec
+    {"province": "Quebec", "city": "Montreal", "name": "Faizan-e-Madina Montreal",
+     "address": "810 Rue Saint-Roch, Montréal, QC H3N 1L4", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
+    {"province": "Quebec", "city": "Montreal", "name": "Faizan-e-Hub-e-Rasool",
+     "address": "1008 Rue Jean-Talon O, Montréal, QC H3N 1T1", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
 ]
 
 V_ADDRESS = CENTRES[0]["address"]
+V_PHONE = CENTRES[0]["phone"]
 V_MAP_Q = "Faizan+e+Madina,+7062+134+Street,+Surrey,+BC"
 
 
@@ -151,19 +183,24 @@ def card(icon, title, text):
 
 
 def centre_card(c):
+    q = c["address"].replace(" ", "+")
+    note = f'<p class="note">{c["note"]}</p>' if c["note"] else ""
+    tel = "".join(ch for ch in c["phone"] if ch.isdigit() or ch == "+")
     inner = f'''<div class="ic" aria-hidden="true">{svg("pin")}</div>
-          <p class="city-prov">{c["province"]}</p>
-          <h3>{c["name"]} {c["city"]}</h3>
+          <p class="city-prov">{c["city"]}</p>
+          <h3>{c["name"]}</h3>
           <p>{c["address"]}</p>
-          <p class="note">{c["note"]}</p>'''
+          {note}'''
     if c["page"]:
         return f'''        <a class="program centre" href="{c["page"]}">
           {inner}
+          <p class="phone">{c["phone"]}</p>
           <span class="when">View centre →</span>
         </a>'''
     return f'''        <article class="program centre">
           {inner}
-          <span class="when">{tbc("Page coming soon")}</span>
+          <p class="phone"><a href="tel:{tel}">{c["phone"]}</a></p>
+          <a class="when" href="https://www.google.com/maps/search/?api=1&amp;query={q}" target="_blank" rel="noopener">Directions →</a>
         </article>'''
 
 
@@ -224,6 +261,10 @@ DONATE = f'''  <section class="block alt" id="donate">
     </div>
   </section>
 '''
+
+CITY_CHIPS = "\n".join(
+    f'        <li><a href="{c["page"] or "centres.html"}">{c["city"]}</a></li>'
+    for c in {c["city"]: c for c in reversed(CENTRES)}.values().__reversed__())
 
 HOME = f'''<main id="top">
   <section class="hero hero-global">
@@ -308,11 +349,11 @@ HOME = f'''<main id="top">
         <p class="kicker">Our centres</p>
         <h2>Find a Faizan e Madina near you</h2>
         <div class="ornament" aria-hidden="true">✦</div>
-        <p>Visit us for daily prayers, weekly gatherings and classes.</p>
+        <p>{len(CENTRES)} centres in {len(set(c["province"] for c in CENTRES))} provinces, for daily prayers, weekly gatherings and classes.</p>
       </div>
-      <div class="programs centres-grid">
-{chr(10).join(centre_card(c) for c in CENTRES)}
-      </div>
+      <ul class="city-chips">
+{CITY_CHIPS}
+      </ul>
       <p class="center-cta"><a class="btn btn-green" href="centres.html">View all centres</a></p>
     </div>
   </section>
@@ -345,10 +386,7 @@ CENTRES_PAGE = f'''<main>
 {page_head("Our centres in Canada", "Faizan e Madina centres of Dawat-e-Islami across Canada", [("Home", "index.html"), ("Centres", None)])}
   <div class="wrap pt-main">
 {chr(10).join(provinces)}
-    <h2 class="prov">Other provinces</h2>
-    <div class="programs centres-grid">
-{placeholder_card()}
-    </div>
+    <p class="muted centres-note">Centre list from Dawat-e-Islami Canada. Is a centre missing or out of date? Please let us know.</p>
   </div>
 </main>
 '''
@@ -423,7 +461,7 @@ VANCOUVER = f'''<main>
         <ul>
           <li><b>Address</b><span>{V_ADDRESS}</span></li>
           <li><b>Open</b><span>Daily for all five prayers</span></li>
-          <li><b>Phone</b><span>{tbc()}</span></li>
+          <li><b>Phone</b><span><a href="tel:+17788950886">{V_PHONE}</a></span></li>
           <li><b>Parking</b><span>{tbc()}</span></li>
         </ul>
         <a class="btn btn-green" href="https://www.google.com/maps/search/?api=1&amp;query={V_MAP_Q}" target="_blank" rel="noopener">Get directions</a>

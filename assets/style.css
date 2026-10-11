@@ -251,3 +251,12 @@ a.program:hover{border-color:var(--gold);box-shadow:0 10px 24px rgba(4,58,46,.12
 @media (max-width:900px){.centre-top{grid-template-columns:1fr}}
 .centre-top .today{box-shadow:0 10px 30px rgba(4,58,46,.15)}
 #centres .centres-grid:has(> :only-child){grid-template-columns:minmax(0,380px);justify-content:center}
+.city-chips{list-style:none;padding:0;margin:0 auto;display:flex;flex-wrap:wrap;justify-content:center;gap:10px;max-width:900px}
+.city-chips a{display:inline-block;text-decoration:none;font-weight:700;color:var(--green);background:#fff;border:1px solid var(--line);border-radius:999px;padding:9px 18px}
+.city-chips a:hover{border-color:var(--gold);background:var(--gold-soft)}
+.city-chips li:first-child a{background:var(--green);color:#fff;border-color:var(--green)}
+.centre .phone{margin:0 0 12px;font-weight:600;font-size:15px}
+.centre .phone a{color:var(--ink);text-decoration:none}
+.centre .when{text-decoration:none}
+.centre .note{color:#8a5a00;font-weight:600}
+.centres-note{margin-top:36px}
