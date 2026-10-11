@@ -9,9 +9,12 @@ Pages
 To add a city, add an entry to CENTRES below and rebuild.
 """
 from pathlib import Path
+import hashlib
 
 ROOT = Path(__file__).parent
 BN = "81933 5662 RR0001"
+# Cache-busting: browsers re-download CSS/JS whenever their contents change
+V = hashlib.md5(b"".join((ROOT / f).read_bytes() for f in ["assets/style.css", "assets/main.js", "assets/prayer-data.js"])).hexdigest()[:8]
 
 
 def tbc(label="TBC"):
@@ -74,7 +77,7 @@ def head(title, desc):
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%8C%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Marcellus&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v={V}">
 </head>
 <body>
 '''
@@ -151,8 +154,8 @@ FOOTER = f'''<footer class="site-footer" id="contact">
     </div>
   </div>
 </footer>
-<script src="assets/prayer-data.js"></script>
-<script src="assets/main.js"></script>
+<script src="assets/prayer-data.js?v={V}"></script>
+<script src="assets/main.js?v={V}"></script>
 </body>
 </html>
 '''

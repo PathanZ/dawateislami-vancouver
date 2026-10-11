@@ -260,3 +260,6 @@ a.program:hover{border-color:var(--gold);box-shadow:0 10px 24px rgba(4,58,46,.12
 .centre .when{text-decoration:none}
 .centre .note{color:#8a5a00;font-weight:600}
 .centres-note{margin-top:36px}
+/* bigger tap targets on phones */
+.centre a.when,.centre .phone a,.today-foot a{display:inline-block;padding:10px 0;min-height:44px;box-sizing:border-box}
+.centre .phone{margin:0 0 2px}
