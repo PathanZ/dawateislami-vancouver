@@ -229,7 +229,7 @@ tbody tr.is-fri td:nth-child(2){color:var(--green);font-weight:700}
 .topbar .next{color:#f3e7bd;text-decoration:none}
 .hero-global .wrap{display:block;text-align:center;padding-top:80px;padding-bottom:88px}
 .hero-global .arabic{text-align:center}
-.hero-global .lead{margin-left:auto;margin-right:auto}
+.hero-global p.lead{margin:0 auto 26px;text-align:center}
 .hero-global .actions{justify-content:center}
 .crumbs{font-size:14px;margin-bottom:10px;color:#cfe0d7}
 .crumbs a{color:#f3e7bd;text-decoration:none}
