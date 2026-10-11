@@ -184,7 +184,6 @@ HOME = f'''<main id="top">
   <section class="slogan" aria-label="Madani Maqsad">
     <div class="wrap">
       <p class="kicker">Our Madani Maqsad</p>
-      <p class="arabic urdu" lang="ur">مجھے اپنی اور ساری دنیا کے لوگوں کی اصلاح کی کوشش کرنی ہے، اِنْ شَآءَ اللہ</p>
       <p class="en">"I must strive to reform myself and the people of the entire world, In sha Allah."</p>
     </div>
   </section>
