@@ -67,10 +67,7 @@ def header(current):
 </div>
 <header class="site-header">
   <div class="wrap">
-    <a class="logo" href="index.html">
-      <img src="assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami">
-      <span class="logo-place">{V_NAME}</span>
-    </a>
+    <a class="logo" href="index.html"><img src="assets/img/logo-vancouver.png" width="900" height="242" alt="Dawat-e-Islami Vancouver"></a>
     <button class="menu-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav class="nav" id="nav" aria-label="Main">
       {link("prayer-times.html", "Prayer times", "prayer")}
@@ -88,7 +85,7 @@ FOOTER = f'''<footer class="site-footer" id="contact">
   <div class="wrap">
     <div class="cols">
       <div>
-        <img class="footer-logo" src="assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami">
+        <img class="footer-logo" src="assets/img/logo-vancouver-white.png" width="900" height="242" alt="Dawat-e-Islami Vancouver">
         <p><b>{V_NAME}</b> is a centre of Dawat-e-Islami, a global, non-political movement spreading the teachings of the Qur'an and Sunnah.</p>
         <p class="bn">Registered Canadian charity · BN {BN}</p>
       </div>
