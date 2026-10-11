@@ -236,7 +236,27 @@ PILLARS = "\n".join(
         ("حَجّ", "Hajj", "Pilgrimage to Makkah once in a lifetime, for those who are able."),
     ])
 
-DONATE = f'''  <section class="block alt" id="donate">
+ETRANSFERS = [
+    ("Zakat", "Zakat2dawat@gmail.com"),
+    ("Sadaqah", "FMsurrey@gmail.com"),
+    ("Mortgage payment donation", "Surrey@dawateislamicanada.net"),
+    ("Qarz-e-Hasana contribution", "Surrey@dawateislamicanada.net"),
+    ("Fitrah", "Fitra2dawat@gmail.com"),
+]
+
+ETRANSFER_LIST = "\n".join(
+    f'''          <li><span class="et-type">{t}</span><span class="et-email">{e}</span><button type="button" class="copy" data-copy="{e}" aria-label="Copy {t} e-Transfer email">Copy</button></li>'''
+    for t, e in ETRANSFERS)
+
+
+def donate_section(scope):
+    if scope == "home":
+        intro = "Donations support our masajid, Qur'an classes and community programs across Canada."
+        sid = "donate"
+    else:
+        intro = "Your donations pay for this centre's building, mortgage, utilities, Qur'an classes and community programs."
+        sid = "donate-centre"
+    return f'''  <section class="block alt" id="{sid}">
     <div class="wrap donate">
       <div>
         <div class="head left">
@@ -244,16 +264,19 @@ DONATE = f'''  <section class="block alt" id="donate">
           <h2>Your donation keeps our work going</h2>
           <div class="ornament" aria-hidden="true">✦</div>
         </div>
-        <p>Donations support our masajid, Qur'an classes and community programs across Canada. Sadaqah, Zakat and Fitrana are all accepted.</p>
+        <p>{intro}</p>
         <p class="hadith">"Charity does not decrease wealth." <span>Sahih Muslim, 2588</span></p>
         <p class="muted">Dawat-e-Islami Canada is a registered Canadian charity (BN {BN}). Official tax receipts are issued for eligible donations.</p>
       </div>
       <div class="give">
         <h3>Ways to give</h3>
-        <a class="btn btn-green wide" href="#donate" aria-disabled="true">Donate online {tbc("link TBC")}</a>
+        <a class="btn btn-green wide" href="#{sid}" aria-disabled="true">Donate online {tbc("link TBC")}</a>
         <div class="etransfer">
           <b>Interac e-Transfer</b>
-          <span>{tbc("Email TBC")}</span>
+          <small>Faizan-e-Madina Vancouver (Surrey). Send to the email for the type of donation.</small>
+          <ul class="et-list">
+{ETRANSFER_LIST}
+          </ul>
           <small>For a tax receipt, include your full name and mailing address in the message.</small>
         </div>
         <div class="etransfer">
@@ -264,6 +287,9 @@ DONATE = f'''  <section class="block alt" id="donate">
     </div>
   </section>
 '''
+
+
+DONATE = donate_section("home")
 
 CITY_CHIPS = "\n".join(
     f'        <li><a href="{c["page"] or "centres.html"}">{c["city"]}</a></li>'
@@ -453,6 +479,7 @@ VANCOUVER = f'''<main>
     </div>
   </section>
 
+{donate_section("centre")}
   <section class="block">
     <div class="wrap visit">
       <div>

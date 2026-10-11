@@ -124,3 +124,13 @@
     select(todayIdx,false);
   }
 })();
+
+// Copy e-Transfer emails
+document.querySelectorAll('.copy[data-copy]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var text=btn.getAttribute('data-copy');
+    function ok(){btn.textContent='Copied';btn.classList.add('done');setTimeout(function(){btn.textContent='Copy';btn.classList.remove('done');},1800);}
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok,function(){window.prompt('Copy this email:',text);});}
+    else{window.prompt('Copy this email:',text);}
+  });
+});
