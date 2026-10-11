@@ -263,3 +263,7 @@ a.program:hover{border-color:var(--gold);box-shadow:0 10px 24px rgba(4,58,46,.12
 /* bigger tap targets on phones */
 .centre a.when,.centre .phone a,.today-foot a{display:inline-block;padding:10px 0;min-height:44px;box-sizing:border-box}
 .centre .phone{margin:0 0 2px}
+/* Vancouver site: centre name under the logo */
+.logo{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-decoration:none}
+.logo-place{font-family:"Marcellus",Georgia,serif;font-size:15px;line-height:1.1;color:var(--green);letter-spacing:.02em;white-space:nowrap}
+@media (max-width:520px){.logo-place{font-size:13px}}

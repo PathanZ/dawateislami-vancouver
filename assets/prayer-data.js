@@ -1,4 +1,4 @@
-// Faizan-e-Madina Surrey prayer timetable (Hanafi)
+// Faizan e Madina Vancouver prayer timetable (Hanafi)
 // Each row: [day, weekday, Fajr, Fajr Jama'at, Sunrise, Zuhr, Zuhr Jama'at, Asr, Asr Jama'at, Maghrib, Isha, Isha Jama'at]
 // To add a new month, add another entry keyed "YYYY-MM".
 window.FEM_TIMES = {
