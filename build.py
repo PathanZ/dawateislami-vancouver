@@ -1,164 +1,25 @@
-"""Assemble the site pages from shared pieces. Run: python3 build.py
+"""Build the Dawat-e-Islami Canada website. Run: python3 build.py
 
-Pages
-  index.html          Dawat-e-Islami Canada home (national)
-  centres.html        All Faizan e Madina centres in Canada
-  vancouver.html      Faizan e Madina Vancouver (Surrey): prayers, Ijtima, services, map
-  prayer-times.html   Monthly timetable for the Vancouver centre
-
-To add a city, add an entry to CENTRES below and rebuild.
+Words and lists live in content.py. Events live in assets/events.js.
+To add a centre, service or department, edit content.py and rebuild.
 """
-from pathlib import Path
 import hashlib
+from pathlib import Path
+from content import *  # noqa: F401,F403
 
 ROOT = Path(__file__).parent
-BN = "81933 5662 RR0001"
-# Cache-busting: browsers re-download CSS/JS whenever their contents change
-V = hashlib.md5(b"".join((ROOT / f).read_bytes() for f in ["assets/style.css", "assets/main.js", "assets/prayer-data.js"])).hexdigest()[:8]
+ASSETS = ["assets/style.css", "assets/main.js", "assets/events.js"]
+V = hashlib.md5(b"".join((ROOT / f).read_bytes() for f in ASSETS)).hexdigest()[:8]
+HERO_VIDEO = (ROOT / "assets/video/hero.mp4").exists()
 
 
 def tbc(label="TBC"):
     return f'<span class="draft">{label}</span>'
 
 
-# ---- Centres in Canada -------------------------------------------------------
-# page: the centre's own page, or None while it has no page yet
-CENTRES = [
-    # British Columbia
-    {"province": "British Columbia", "city": "Vancouver", "name": "Faizan-e-Madina Masjid",
-     "address": "7062 134 St, Surrey, BC V3W 4T2", "phone": "+1 (778) 895-0886", "page": "vancouver.html",
-     "note": "Daily prayers · Weekly Ijtima · Weekend Islamic School"},
-    # Alberta
-    {"province": "Alberta", "city": "Calgary", "name": "Faizan-e-Madina",
-     "address": "32 Westwinds Crescent NE, Calgary, AB T3J 5H2", "phone": "+1 (403) 618-5408", "page": None, "note": ""},
-    {"province": "Alberta", "city": "Calgary", "name": "Faizan-e-Makkah",
-     "address": "4250 109 Ave NE, Calgary, AB T3N 1Z3", "phone": "+1 (403) 618-5408", "page": None, "note": ""},
-    {"province": "Alberta", "city": "Edmonton", "name": "Faizan-e-Madina Edmonton",
-     "address": "11809 96 St, Edmonton, AB T5G 1V4", "phone": "+1 (780) 729-6492", "page": None, "note": ""},
-    # Saskatchewan
-    {"province": "Saskatchewan", "city": "Regina", "name": "Faizan-e-Madina Islamic Center",
-     "address": "1169 Athol St, Regina, SK S4T 3C3", "phone": "+1 (438) 401-0782", "page": None, "note": ""},
-    # Manitoba
-    {"province": "Manitoba", "city": "Winnipeg", "name": "Faizan-e-Madina Islamic Centre",
-     "address": "585 St Anne's Rd, Winnipeg, MB R2M 5R5", "phone": "+1 (204) 998-1979", "page": None, "note": ""},
-    {"province": "Manitoba", "city": "Winnipeg", "name": "Faizan-e-Makkah",
-     "address": "509 Trans-Canada Hwy, Winnipeg, MB R2M 3L2", "phone": "+1 (204) 998-1979", "page": None,
-     "note": "Under construction"},
-    # Ontario
-    {"province": "Ontario", "city": "East York (Thorncliffe)", "name": "Faizan-e-Attar",
-     "address": "49 Thorncliffe Park Dr, Unit 120, East York, ON M4H 1J6", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
-    {"province": "Ontario", "city": "Etobicoke", "name": "Faizan-e-Madina Etobicoke",
-     "address": "595 Albion Rd, Etobicoke, ON M9V 1A1", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
-    {"province": "Ontario", "city": "Hamilton", "name": "Faizan-e-Madina Hamilton",
-     "address": "1202 Dunsmure Rd, Hamilton, ON L8H 1L4", "phone": "+1 (647) 366-3786", "page": None, "note": ""},
-    {"province": "Ontario", "city": "Ottawa", "name": "Faizan-e-Madina Islamic Center",
-     "address": "415 McArthur Ave, Ottawa, ON K1K 1G5", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
-    # Quebec
-    {"province": "Quebec", "city": "Montreal", "name": "Faizan-e-Madina Montreal",
-     "address": "810 Rue Saint-Roch, Montréal, QC H3N 1L4", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
-    {"province": "Quebec", "city": "Montreal", "name": "Faizan-e-Hub-e-Rasool",
-     "address": "1008 Rue Jean-Talon O, Montréal, QC H3N 1T1", "phone": "+1 (514) 983-7861", "page": None, "note": ""},
-]
+def tel(phone):
+    return "".join(ch for ch in phone if ch.isdigit() or ch == "+")
 
-V_ADDRESS = CENTRES[0]["address"]
-V_PHONE = CENTRES[0]["phone"]
-V_MAP_Q = "Faizan+e+Madina,+7062+134+Street,+Surrey,+BC"
-
-
-def head(title, desc):
-    return f'''<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#075b48">
-<meta name="description" content="{desc}">
-<title>{title}</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%95%8C%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Marcellus&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v={V}">
-</head>
-<body>
-'''
-
-
-def header(current, local_prayer=False):
-    def link(href, text, key):
-        cur = ' aria-current="page"' if key == current else ""
-        return f'<a href="{href}"{cur}>{text}</a>'
-    nxt = ('<a class="next" id="nextPrayer" href="vancouver.html" aria-live="polite"></a>'
-           if local_prayer else "")
-    return f'''<div class="topbar">
-  <div class="wrap">
-    <span class="arabic bismillah" lang="ar">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
-    {nxt}
-  </div>
-</div>
-<header class="site-header">
-  <div class="wrap">
-    <a class="logo" href="index.html"><img src="assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami Canada"></a>
-    <button class="menu-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
-    <nav class="nav" id="nav" aria-label="Main">
-      {link("index.html#about", "About Us", "about")}
-      {link("index.html#services", "Services", "services")}
-      {link("centres.html", "Centres", "centres")}
-      {link("index.html#contact", "Contact", "contact")}
-      <a class="btn btn-gold" href="index.html#donate">Donate now</a>
-    </nav>
-  </div>
-</header>
-'''
-
-
-FOOTER = f'''<footer class="site-footer" id="contact">
-  <div class="wrap">
-    <div class="cols">
-      <div>
-        <img class="footer-logo" src="assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami Canada">
-        <p>A global, non-political movement spreading the teachings of the Qur'an and Sunnah.</p>
-        <p class="bn">Registered Canadian charity · BN {BN}</p>
-      </div>
-      <div>
-        <h4>Contact</h4>
-        <ul>
-          <li>Address: {tbc()}</li>
-          <li>Phone: {tbc()}</li>
-          <li>Email: {tbc()}</li>
-          <li>WhatsApp: {tbc()}</li>
-        </ul>
-      </div>
-      <div>
-        <h4>Quick links</h4>
-        <ul>
-          <li><a href="index.html#about">About us</a></li>
-          <li><a href="index.html#services">Services</a></li>
-          <li><a href="centres.html">Centres</a></li>
-          <li><a href="index.html#donate">Donate</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4>Dawat-e-Islami worldwide</h4>
-        <ul>
-          <li><a href="https://www.dawateislami.net/" target="_blank" rel="noopener">Global website</a></li>
-          <li><a href="https://www.dawateislamiusa.org/" target="_blank" rel="noopener">Dawat-e-Islami USA</a></li>
-          <li><a href="https://dawateislami.co.uk/" target="_blank" rel="noopener">Dawat-e-Islami UK</a></li>
-          <li><a href="https://www.fatwaqa.com/en" target="_blank" rel="noopener">Ask a question (Darul Ifta)</a></li>
-        </ul>
-        <p class="social">Social media: {tbc("Links TBC")}</p>
-      </div>
-    </div>
-    <div class="legal">
-      <span>© <span id="year">2026</span> Dawat-e-Islami Canada</span>
-      <span>Draft preview for management review</span>
-    </div>
-  </div>
-</footer>
-<script src="assets/prayer-data.js?v={V}"></script>
-<script src="assets/main.js?v={V}"></script>
-</body>
-</html>
-'''
 
 ICON = {
     "salah": '<path d="M3 20h18M5 20V11l7-6 7 6v9M10 20v-5h4v5"/>',
@@ -169,188 +30,207 @@ ICON = {
     "quran": '<path d="M4 5h7a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-7a2 2 0 00-2 2v12a2 2 0 012-2h7z"/>',
     "sisters": '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c1-4 4-6 7-6s6 2 7 6"/>',
     "online": '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4M10 9l5 2-5 2z"/>',
+    "heart": '<path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/>',
+    "jamia": '<path d="M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5M22 9v6"/>',
     "pin": '<path d="M12 21s-7-6.2-7-12a7 7 0 0114 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+    "dept": '<path d="M4 20V8l8-4 8 4v12M9 20v-6h6v6M4 20h16"/>',
+    "mail": '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
 }
 
 
 def svg(name):
-    return f'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">{ICON[name]}</svg>'
+    return f'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{ICON[name]}</svg>'
 
 
-def card(icon, title, text):
-    return f'''        <article class="program">
-          <div class="ic" aria-hidden="true">{svg(icon)}</div>
+def section_head(kicker, title, text="", left=False):
+    cls = "head left" if left else "head"
+    p = f"\n        <p>{text}</p>" if text else ""
+    return f'''      <div class="{cls}">
+        <p class="kicker">{kicker}</p>
+        <h2>{title}</h2>
+        <div class="ornament" aria-hidden="true">✦</div>{p}
+      </div>'''
+
+
+# ---------------------------------------------------------------- page shell
+NAV = [("about.html", "About Us"), ("services.html", "Services"), ("departments.html", "Departments"),
+       ("centres.html", "Centres"), ("events.html", "Events"), ("contact.html", "Contact")]
+
+
+def head(page, title, desc):
+    url = f"{SITE}/" if page == "index.html" else f"{SITE}/{page.replace('.html', '')}"
+    return f'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#075b48">
+<title>{title}</title>
+<meta name="description" content="{desc}">
+<link rel="canonical" href="{url}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Dawat-e-Islami Canada">
+<meta property="og:title" content="{title}">
+<meta property="og:description" content="{desc}">
+<meta property="og:url" content="{url}">
+<meta property="og:image" content="{SITE}/assets/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Marcellus&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css?v={V}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+'''
+
+
+def header(current):
+    links = "\n      ".join(
+        f'<a href="{h}"{" aria-current=page" if h == current else ""}>{t}</a>' for h, t in NAV)
+    donate_cur = " aria-current=page" if current == "donate.html" else ""
+    return f'''<div class="topbar">
+  <div class="wrap">
+    <span class="arabic bismillah" lang="ar">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
+    <a class="topbar-link" href="https://dawateislami.net/pk/islam/streaming/watch-live-youtube-madani-channel-english.htm" target="_blank" rel="noopener">Madani Channel live</a>
+  </div>
+</div>
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="index.html"><img src="assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami Canada home"></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="nav">Menu</button>
+    <nav class="nav" id="nav" aria-label="Main">
+      {links}
+      <a class="btn btn-gold" href="donate.html"{donate_cur}>Donate now</a>
+    </nav>
+  </div>
+</header>
+'''
+
+
+def social_links():
+    filled = [(n, u) for n, u in SOCIAL.items() if u]
+    if not filled:
+        return f'<p class="social">Follow us: {tbc("Links TBC")}</p>'
+    return '<p class="social">' + " · ".join(
+        f'<a href="{u}" target="_blank" rel="noopener">{n}</a>' for n, u in filled) + "</p>"
+
+
+def footer():
+    ww = "\n".join(f'          <li><a href="{u}" target="_blank" rel="noopener">{n}</a></li>' for n, u in WORLDWIDE[:4])
+    return f'''<footer class="site-footer">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <img class="footer-logo" src="assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami Canada" loading="lazy">
+        <p>A global, non-political movement spreading the teachings of the Qur'an and Sunnah, with {len(CENTRES)} centres across Canada.</p>
+        <p class="bn">Registered Canadian charity · BN {BN}</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          <li><a href="mailto:{EMAIL}">{EMAIL}</a></li>
+          <li>{OFFICE}</li>
+          <li><a href="contact.html">Phone numbers by province</a></li>
+        </ul>
+        {social_links()}
+      </div>
+      <div>
+        <h4>Quick links</h4>
+        <ul>
+          <li><a href="about.html">About us</a></li>
+          <li><a href="services.html">Services</a></li>
+          <li><a href="centres.html">Centres</a></li>
+          <li><a href="events.html">Events</a></li>
+          <li><a href="donate.html">Donate</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Dawat-e-Islami worldwide</h4>
+        <ul>
+{ww}
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>© <span id="year">2026</span> Dawat-e-Islami Canada</span>
+      <span><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms of use</a></span>
+    </div>
+  </div>
+</footer>
+<script src="assets/events.js?v={V}"></script>
+<script src="assets/main.js?v={V}"></script>
+</body>
+</html>
+'''
+
+
+def page_head(title, sub, crumb):
+    return f'''  <section class="page-head">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> <span>›</span> <span aria-current="page">{crumb}</span></nav>
+      <h1>{title}</h1>
+      <p>{sub}</p>
+    </div>
+  </section>
+'''
+
+
+# ---------------------------------------------------------------- shared blocks
+def card(icon, title, text, href=None, more="Read more"):
+    body = f'''<div class="ic">{svg(icon)}</div>
           <h3>{title}</h3>
-          <p>{text}</p>
+          <p>{text}</p>'''
+    if href:
+        return f'''        <a class="program" href="{href}">
+          {body}
+          <span class="when">{more} →</span>
+        </a>'''
+    return f'''        <article class="program">
+          {body}
         </article>'''
+
+
+def slug(s):
+    return s.lower().replace(" ", "-")
 
 
 def centre_card(c):
     q = c["address"].replace(" ", "+")
     note = f'<p class="note">{c["note"]}</p>' if c["note"] else ""
-    tel = "".join(ch for ch in c["phone"] if ch.isdigit() or ch == "+")
-    inner = f'''<div class="ic" aria-hidden="true">{svg("pin")}</div>
+    site = (f'<a class="when" href="{c["site"]}" target="_blank" rel="noopener">Centre website →</a>'
+            if c["site"] else "")
+    return f'''        <article class="program centre">
+          <div class="ic">{svg("pin")}</div>
           <p class="city-prov">{c["city"]}</p>
           <h3>{c["name"]}</h3>
           <p>{c["address"]}</p>
-          {note}'''
-    if c["page"]:
-        return f'''        <a class="program centre" href="{c["page"]}">
-          {inner}
-          <p class="phone">{c["phone"]}</p>
-          <span class="when">View centre →</span>
-        </a>'''
-    return f'''        <article class="program centre">
-          {inner}
-          <p class="phone"><a href="tel:{tel}">{c["phone"]}</a></p>
-          <a class="when" href="https://www.google.com/maps/search/?api=1&amp;query={q}" target="_blank" rel="noopener">Directions →</a>
+          {note}
+          <p class="phone"><a href="tel:{tel(c["phone"])}">{c["phone"]}</a></p>
+          <div class="centre-links">
+            <a class="when" href="https://www.google.com/maps/search/?api=1&amp;query={q}" target="_blank" rel="noopener">Directions →</a>
+            {site}
+          </div>
         </article>'''
 
 
-def placeholder_card():
-    return f'''        <article class="program centre empty">
-          <div class="ic" aria-hidden="true">{svg("pin")}</div>
-          <h3>More cities</h3>
-          <p>Other Faizan e Madina centres across Canada will be listed here. {tbc("Send list of cities")}</p>
-        </article>'''
-
-
-GLOBAL_SERVICES = "\n".join([
-    card("salah", "Masajid", "Faizan e Madina centres for the five daily prayers and Jummah."),
-    card("ijtima", "Weekly Ijtima", "Weekly spiritual gatherings with tilawat, naat, bayan, zikr and dua."),
-    card("school", "Faizan Weekend Islamic School", "Faith, character and Qur'an for children who attend school during the week."),
-    card("quran", "Qur'an classes & Hifz", "Learn to read the Qur'an with tajweed, and memorise it in the Hifz program."),
-    card("courses", "Free short courses", "Monthly courses on everyday Islamic knowledge, open to everyone."),
-    card("sisters", "Programs for sisters", "Halaqahs, classes and gatherings run by and for Islamic sisters."),
-    card("online", "Faizan Online Academy", "Live online Qur'an and Islamic studies classes you can join from home."),
-    card("jummah", "Community support", "Guidance, spiritual cure and help for families in our community."),
-])
-
-PILLARS = "\n".join(
-    f'<div class="pillar"><span class="arabic" lang="ar">{ar}</span><h3>{en}</h3><p>{txt}</p></div>'
-    for ar, en, txt in [
-        ("شَهَادَة", "Shahadah", "Belief in the oneness of Allah and that Muhammad ﷺ is His final messenger."),
-        ("صَلَاة", "Salah", "Worshipping Allah through the five daily prayers."),
-        ("زَكَاة", "Zakat", "Giving 2.5% of eligible wealth each year to those in need."),
-        ("صَوْم", "Sawm", "Fasting from dawn to sunset through the month of Ramadan."),
-        ("حَجّ", "Hajj", "Pilgrimage to Makkah once in a lifetime, for those who are able."),
-    ])
-
-ETRANSFERS = [
-    ("Zakat", "Zakat2dawat@gmail.com"),
-    ("Sadaqah", "FMsurrey@gmail.com"),
-    ("Mortgage payment donation", "Surrey@dawateislamicanada.net"),
-    ("Qarz-e-Hasana contribution", "Surrey@dawateislamicanada.net"),
-    ("Fitrah", "Fitra2dawat@gmail.com"),
-]
-
-ETRANSFER_LIST = "\n".join(
-    f'''          <li><span class="et-type">{t}</span><span class="et-email">{e}</span><button type="button" class="copy" data-copy="{e}" aria-label="Copy {t} e-Transfer email">Copy</button></li>'''
-    for t, e in ETRANSFERS)
-
-
-def donate_section(scope):
-    if scope == "home":
-        intro = "Donations support our masajid, Qur'an classes and community programs across Canada."
-        sid = "donate"
-    else:
-        intro = "Your donations pay for this centre's building, mortgage, utilities, Qur'an classes and community programs."
-        sid = "donate-centre"
-    return f'''  <section class="block alt" id="{sid}">
-    <div class="wrap donate">
-      <div>
-        <div class="head left">
-          <p class="kicker">Support us</p>
-          <h2>Your donation keeps our work going</h2>
-          <div class="ornament" aria-hidden="true">✦</div>
-        </div>
-        <p>{intro}</p>
-        <p class="hadith">"Charity does not decrease wealth." <span>Sahih Muslim, 2588</span></p>
-        <p class="muted">Dawat-e-Islami Canada is a registered Canadian charity (BN {BN}). Official tax receipts are issued for eligible donations.</p>
-      </div>
-      <div class="give">
-        <h3>Ways to give</h3>
-        <a class="btn btn-green wide" href="#{sid}" aria-disabled="true">Donate online {tbc("link TBC")}</a>
-        <div class="etransfer">
-          <b>Interac e-Transfer</b>
-          <small>Faizan-e-Madina Vancouver (Surrey). Send to the email for the type of donation.</small>
-          <ul class="et-list">
-{ETRANSFER_LIST}
-          </ul>
-          <small>For a tax receipt, include your full name and mailing address in the message.</small>
-        </div>
-        <div class="etransfer">
-          <b>In person</b>
-          <span>At any of our centres after prayers</span>
-        </div>
+def pillars():
+    items = "\n".join(
+        f'        <div class="pillar"><span class="arabic" lang="ar">{ar}</span><h3>{en}</h3><p>{t}</p></div>'
+        for ar, en, t in PILLARS)
+    return f'''  <section class="block tint" id="pillars">
+    <div class="wrap">
+{section_head("Discover Islam", "The five pillars of Islam")}
+      <div class="pillars">
+{items}
       </div>
     </div>
   </section>
 '''
 
 
-DONATE = donate_section("home")
-
-CITY_CHIPS = "\n".join(
-    f'        <li><a href="{c["page"] or "centres.html"}">{c["city"]}</a></li>'
-    for c in {c["city"]: c for c in reversed(CENTRES)}.values().__reversed__())
-
-HOME = f'''<main id="top">
-  <section class="hero hero-global">
-    <!-- Hero video goes here later: <video class="hero-video" autoplay muted loop playsinline poster="assets/img/hero.jpg"><source src="assets/video/hero.mp4" type="video/mp4"></video> -->
-    <div class="wrap">
-      <p class="arabic" lang="ar">اَلسَّلَامُ عَلَيْكُمْ</p>
-      <h1>Welcome to Dawat-e-Islami Canada</h1>
-      <p class="tagline">Connect · Learn · Grow · Together</p>
-      <p class="lead">Spreading the teachings of the Qur'an and Sunnah through our masajid, Qur'an classes and community programs across Canada.</p>
-      <div class="actions">
-        <a class="btn btn-gold" href="#donate">Donate now</a>
-        <a class="btn btn-line" href="centres.html">Find a centre</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="slogan" aria-label="Madani Maqsad">
-    <div class="wrap">
-      <p class="kicker">Our Madani Maqsad</p>
-      <p class="en">"I must strive to reform myself and the people of the entire world, In sha Allah."</p>
-    </div>
-  </section>
-
-  <section class="block alt" id="about">
-    <div class="wrap about">
-      <div>
-        <div class="head left">
-          <p class="kicker">About us</p>
-          <h2>Part of the global family of Dawat-e-Islami</h2>
-          <div class="ornament" aria-hidden="true">✦</div>
-        </div>
-        <p>Dawat-e-Islami was founded in 1981 in Karachi by Ameer-e-Ahl-e-Sunnat, Maulana Muhammad Ilyas Attar Qadri. Today it serves communities around the world through Qur'an education, Islamic scholarship and welfare work.</p>
-        <p>Dawat-e-Islami Canada brings that work to communities across the country through its Faizan e Madina centres, classes and weekly gatherings.</p>
-        <p>{tbc("Add: a few lines about Dawat-e-Islami Canada's history")}</p>
-      </div>
-      <div class="photo-slot">
-        <div><strong>Photo</strong><span>Masjid or Ameer-e-Ahl-e-Sunnat, to be added</span></div>
-      </div>
-    </div>
-  </section>
-
-{DONATE}
-  <section class="block" id="services">
-    <div class="wrap">
-      <div class="head">
-        <p class="kicker">What we offer</p>
-        <h2>Our services</h2>
-        <div class="ornament" aria-hidden="true">✦</div>
-        <p>Available at our centres across Canada. See each centre's page for its own programs and timings.</p>
-      </div>
-      <div class="programs four">
-{GLOBAL_SERVICES}
-      </div>
-    </div>
-  </section>
-
-  <section class="block hadees" aria-labelledby="hadeesTitle">
+HADEES = '''  <section class="block hadees" aria-labelledby="hadeesTitle">
     <div class="wrap">
       <p class="kicker" id="hadeesTitle">Hadees of the week</p>
       <p class="arabic" lang="ar">خَيْرُكُمْ مَنْ تَعَلَّمَ الْقُرْآنَ وَعَلَّمَهُ</p>
@@ -358,30 +238,137 @@ HOME = f'''<main id="top">
       <cite>Sahih al-Bukhari, Hadith 5027</cite>
     </div>
   </section>
+'''
 
-  <section class="block tint" id="pillars">
+SLOGAN = '''  <section class="slogan" aria-label="Madani Maqsad">
     <div class="wrap">
-      <div class="head">
-        <p class="kicker">Discover Islam</p>
-        <h2>The five pillars of Islam</h2>
-        <div class="ornament" aria-hidden="true">✦</div>
-      </div>
-      <div class="pillars">
-{PILLARS}
+      <p class="kicker">Our Madani Maqsad</p>
+      <p class="en">"I must strive to reform myself and the people of the entire world, In sha Allah."</p>
+    </div>
+  </section>
+'''
+
+
+def etransfer_list():
+    rows = "\n".join(
+        f'            <li><span class="et-type">{t}</span><span class="et-email">{e}</span>'
+        f'<button type="button" class="copy" data-copy="{e}" aria-label="Copy {t} e-Transfer email">Copy</button></li>'
+        for t, e in ETRANSFERS)
+    return f'''          <ul class="et-list">
+{rows}
+          </ul>'''
+
+
+def donate_button(cls="btn btn-green wide"):
+    if DONATE_URL:
+        return f'<a class="{cls}" href="{DONATE_URL}" target="_blank" rel="noopener">Donate online</a>'
+    return f'<a class="{cls}" href="donate.html" aria-disabled="true">Donate online {tbc("link TBC")}</a>'
+
+
+def give_box(full):
+    extra = "" if full else '\n        <a class="more" href="donate.html">All ways to give →</a>'
+    return f'''      <div class="give">
+        <h3>Ways to give</h3>
+        {donate_button()}
+        <div class="etransfer">
+          <b>Interac e-Transfer</b>
+          <small>Faizan-e-Madina Vancouver (Surrey). Send to the email for the type of donation.</small>
+{etransfer_list()}
+          <small>For a tax receipt, include your full name and mailing address in the message.</small>
+        </div>
+        <div class="etransfer">
+          <b>In person</b>
+          <span>At any of our centres after prayers</span>
+        </div>{extra}
+      </div>'''
+
+
+# ---------------------------------------------------------------- pages
+def home():
+    video = ('<video class="hero-video" autoplay muted loop playsinline preload="metadata" poster="assets/img/hero.jpg" aria-hidden="true"><source src="assets/video/hero.mp4" type="video/mp4"></video>'
+             if HERO_VIDEO else "")
+    featured = "\n".join(card(i, t, s, f"services.html#{sid}") for sid, i, t, s, _ in
+                         [x for x in SERVICES if x[0] in ("madrasa", "jamia", "weekly-school", "online-academy")])
+    services = "\n".join(card(i, t, s, f"services.html#{sid}") for sid, i, t, s, _ in SERVICES[:8])
+    cities = "\n".join(f'        <li><a href="centres.html#{slug(c["province"])}">{c["city"]}</a></li>'
+                       for c in {c["city"]: c for c in CENTRES}.values())
+    provinces = len({c["province"] for c in CENTRES})
+    return f'''<main id="main">
+  <section class="hero hero-global">
+    {video}
+    <div class="wrap">
+      <p class="arabic" lang="ar">اَلسَّلَامُ عَلَيْكُمْ</p>
+      <h1>Welcome to Dawat-e-Islami Canada</h1>
+      <p class="tagline">Connect · Learn · Grow · Together</p>
+      <p class="lead">Spreading the teachings of the Qur'an and Sunnah through our masajid, Qur'an classes and community programs across Canada.</p>
+      <div class="actions">
+        <a class="btn btn-gold" href="donate.html">Donate now</a>
+        <a class="btn btn-line" href="centres.html">Find a centre</a>
       </div>
     </div>
   </section>
 
+{SLOGAN}
+  <section class="block alt" id="about">
+    <div class="wrap about">
+      <div>
+{section_head("About us", "Dawat-e-Islami Canada", left=True)}
+        <p>Dawat-e-Islami is an international, non-political Islamic organization working to spread the message of the Qur'an and Sunnah. It was established in 1981 in Karachi, Pakistan, by Ameer-e-Ahl-e-Sunnat, Allama Maulana Abu Bilal Muhammad Ilyas Attar Qadri.</p>
+        <p>In Canada, Dawat-e-Islami has {len(CENTRES)} centres across {provinces} provinces, offering weekly gatherings, Qur'an classes for adults and children, Friday prayers and youth programs.</p>
+        <a class="btn btn-green" href="about.html">Read more</a>
+      </div>
+      <div class="photo-slot">
+        <div><strong>Photo</strong><span>One of our centres, to be added</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="donate">
+    <div class="wrap donate">
+      <div>
+{section_head("Support us", "Your donation keeps our work going", left=True)}
+        <p>Donations support our masajid, Qur'an classes and community programs across Canada. Zakat, Sadaqah, Fitrah and masjid donations are all welcome.</p>
+        <p class="hadith">"Charity does not decrease wealth." <span>Sahih Muslim, 2588</span></p>
+        <p class="muted">Dawat-e-Islami Canada is a registered Canadian charity (BN {BN}). Official tax receipts are issued for eligible donations.</p>
+      </div>
+{give_box(full=False)}
+    </div>
+  </section>
+
+  <section class="block alt" id="programs">
+    <div class="wrap">
+{section_head("Islamic education", "Your path to Islamic knowledge", "From a child's first Qur'an lesson to full scholarly training.")}
+      <div class="programs four">
+{featured}
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="services">
+    <div class="wrap">
+{section_head("What we offer", "Our services", "Available at our centres across Canada.")}
+      <div class="programs four">
+{services}
+      </div>
+      <p class="center-cta"><a class="btn btn-green" href="services.html">View all services</a></p>
+    </div>
+  </section>
+
+{HADEES}
+  <section class="block" id="events">
+    <div class="wrap narrow">
+{section_head("Events and activities", "What's coming up")}
+      <div class="events" data-events data-limit="3"><p class="muted">Loading events…</p></div>
+      <p class="center-cta"><a class="btn btn-green" href="events.html">View all events</a></p>
+    </div>
+  </section>
+
+{pillars()}
   <section class="block" id="centres">
     <div class="wrap">
-      <div class="head">
-        <p class="kicker">Our centres</p>
-        <h2>Find a Faizan e Madina near you</h2>
-        <div class="ornament" aria-hidden="true">✦</div>
-        <p>{len(CENTRES)} centres in {len(set(c["province"] for c in CENTRES))} provinces, for daily prayers, weekly gatherings and classes.</p>
-      </div>
+{section_head("Our centres", "Find a Faizan-e-Madina near you", f"{len(CENTRES)} centres in {provinces} provinces, for daily prayers, weekly gatherings and classes.")}
       <ul class="city-chips">
-{CITY_CHIPS}
+{cities}
       </ul>
       <p class="center-cta"><a class="btn btn-green" href="centres.html">View all centres</a></p>
     </div>
@@ -390,132 +377,306 @@ HOME = f'''<main id="top">
 '''
 
 
-def page_head(title, sub, crumbs):
-    trail = " <span>›</span> ".join(
-        f'<a href="{h}">{t}</a>' if h else f"<span aria-current=\"page\">{t}</span>" for t, h in crumbs)
-    return f'''  <section class="page-head">
-    <div class="wrap">
-      <nav class="crumbs" aria-label="Breadcrumb">{trail}</nav>
-      <h1>{title}</h1>
-      <p>{sub}</p>
+def about():
+    worldwide = "\n".join(f'          <li><a href="{u}" target="_blank" rel="noopener">{n}</a></li>' for n, u in WORLDWIDE)
+    return f'''<main id="main">
+{page_head("About us", "An international, non-political movement of the Qur'an and Sunnah", "About us")}
+  <section class="block">
+    <div class="wrap about">
+      <div>
+{section_head("Who we are", "About Dawat-e-Islami", left=True)}
+        <p>Dawat-e-Islami is an international, non-political Islamic organization working to spread the message of the Qur'an and Sunnah across the world. It was established in 1981 in Karachi, Pakistan, by one of the great scholars of the present era, Ameer-e-Ahl-e-Sunnat, Allama Maulana Abu Bilal Muhammad Ilyas Attar Qadri.</p>
+        <p>Today Dawat-e-Islami serves communities in many countries through Qur'an education, Islamic scholarship, publishing, the Madani Channel and welfare work.</p>
+      </div>
+      <div class="photo-slot">
+        <div><strong>Photo</strong><span>To be added</span></div>
+      </div>
     </div>
   </section>
+
+{SLOGAN}
+  <section class="block alt" id="ameer">
+    <div class="wrap narrow">
+{section_head("Our founder", "Ameer-e-Ahl-e-Sunnat")}
+      <p>Shaykh-e-Tariqat, Ameer-e-Ahl-e-Sunnat, Allama Maulana Abu Bilal Muhammad Ilyas Attar Qadri Razavi is the founder of Dawat-e-Islami. Through his books, bayans and the Madani Muzakra, he has inspired people around the world to live by the Qur'an and Sunnah.</p>
+      <p class="center-cta"><a class="btn btn-green" href="https://www.ilyasqadri.com/" target="_blank" rel="noopener">Visit his website</a></p>
+    </div>
+  </section>
+
+  <section class="block" id="canada">
+    <div class="wrap narrow">
+{section_head("In Canada", "Dawat-e-Islami Canada")}
+      <p>Dawat-e-Islami has {len(CENTRES)} centres across Canada, in British Columbia, Alberta, Saskatchewan, Manitoba, Ontario and Quebec. Through Jamia-tul-Madina in Montreal, Quebec, it is also producing the next generation of scholars.</p>
+      <ul class="tick-list">
+        <li>Weekly Islamic gatherings for brothers and sisters</li>
+        <li>Zikr sessions</li>
+        <li>Qur'an classes for adults and children</li>
+        <li>Friday prayers</li>
+        <li>Youth gatherings in provinces, cities and local areas</li>
+      </ul>
+      <p>{tbc("Add: when Dawat-e-Islami started in Canada, and a few lines of its history")}</p>
+      <p class="muted">Dawat-e-Islami Canada is a registered Canadian charity, BN {BN}.</p>
+      <p class="center-cta"><a class="btn btn-green" href="centres.html">See our centres</a></p>
+    </div>
+  </section>
+
+  <section class="block tint">
+    <div class="wrap narrow">
+{section_head("Learn more", "Dawat-e-Islami worldwide")}
+      <ul class="link-list">
+{worldwide}
+      </ul>
+    </div>
+  </section>
+</main>
 '''
 
 
-provinces = []
-for prov in dict.fromkeys(c["province"] for c in CENTRES):
-    cards = "\n".join(centre_card(c) for c in CENTRES if c["province"] == prov)
-    provinces.append(f'''    <h2 class="prov">{prov}</h2>
+def services_page():
+    blocks = "\n".join(f'''        <article class="service" id="{sid}">
+          <div class="ic">{svg(i)}</div>
+          <div>
+            <h2>{t}</h2>
+            <p>{long}</p>
+          </div>
+        </article>''' for sid, i, t, _, long in SERVICES)
+    return f'''<main id="main">
+{page_head("Our services", "Your one-stop destination for Islamic learning and growth", "Services")}
+  <section class="block">
+    <div class="wrap narrow">
+      <p class="intro">Dawat-e-Islami Canada offers a wide range of services to support the community. Religious activities are free of charge. Programs and timings vary by centre, so please contact your nearest centre for details.</p>
+      <div class="service-list">
+{blocks}
+      </div>
+      <p class="center-cta"><a class="btn btn-green" href="centres.html">Find your nearest centre</a></p>
+    </div>
+  </section>
+</main>
+'''
+
+
+def departments_page():
+    cards = "\n".join(card("dept", n, d) for n, d in DEPARTMENTS)
+    return f'''<main id="main">
+{page_head("Departments", "The departments that carry out the work of Dawat-e-Islami Canada", "Departments")}
+  <section class="block">
+    <div class="wrap">
+      <p class="intro center">Each department focuses on one area of service, from Qur'an education to welfare and media.</p>
+      <div class="programs four">
+{cards}
+      </div>
+    </div>
+  </section>
+</main>
+'''
+
+
+def centres_page():
+    provs = list(dict.fromkeys(c["province"] for c in CENTRES))
+    groups = []
+    for prov in provs:
+        cards = "\n".join(centre_card(c) for c in CENTRES if c["province"] == prov)
+        groups.append(f'''    <h2 class="prov" id="{slug(prov)}">{prov}</h2>
     <div class="programs centres-grid">
 {cards}
     </div>''')
-
-CENTRES_PAGE = f'''<main>
-{page_head("Our centres in Canada", "Faizan e Madina centres of Dawat-e-Islami across Canada", [("Home", "index.html"), ("Centres", None)])}
+    jump = "".join(f'<a href="#{slug(p)}">{p}</a>' for p in provs)
+    return f'''<main id="main">
+{page_head("Our centres in Canada", f"{len(CENTRES)} Faizan-e-Madina centres of Dawat-e-Islami across Canada", "Centres")}
   <div class="wrap pt-main">
-{chr(10).join(provinces)}
-    <p class="muted centres-note">Centre list from Dawat-e-Islami Canada. Is a centre missing or out of date? Please let us know.</p>
+    <nav class="jump" aria-label="Provinces">{jump}</nav>
+{chr(10).join(groups)}
+    <p class="muted centres-note">Is a centre missing or out of date? Email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
   </div>
 </main>
 '''
 
-V_SERVICES = "\n".join([
-    card("salah", "5 daily prayers", "Jama'at for all five daily prayers."),
-    card("jummah", "Two Jummah prayers", "Two Friday congregations, at 1:30 PM and 3:30 PM."),
-    card("ijtima", "Weekly Ijtima", "Every Thursday at 7:00 PM."),
-    card("school", "Weekend Islamic School", "Faith, character and Qur'an for children on weekends."),
-    card("courses", "Free monthly courses", "Short courses on everyday Islamic knowledge."),
-    card("quran", "Qur'an classes & Hifz", "Qur'an reading with tajweed and the Hifz program."),
-    card("sisters", "Sisters-only Halaqah", "Classes and gatherings for Islamic sisters."),
-    card("online", "Faizan Online Academy", "Live online classes you can join from home."),
-])
 
-IJTIMA_PARTS = "".join(f"<li>{p}</li>" for p in ["Tilawat", "Naat", "Bayan", "Zikr", "Dua", "Salam"])
-
-VANCOUVER = f'''<main>
-{page_head("Faizan e Madina Vancouver", V_ADDRESS, [("Home", "index.html"), ("Centres", "centres.html"), ("Vancouver", None)])}
+def events_page():
+    return f'''<main id="main">
+{page_head("Events and activities", "Gatherings, programs and announcements across Canada", "Events")}
   <section class="block">
-    <div class="wrap centre-top">
-      <aside class="today" aria-labelledby="todayTitle">
-        <div class="today-head">
-          <h2 id="todayTitle">Today's prayers</h2>
-          <span class="today-date" id="todayDate"></span>
-        </div>
-        <div class="today-cols"><span>Prayer</span><span>Begins</span><span>Jama'at</span></div>
-        <ul class="today-list" id="todayList"></ul>
-        <div class="today-foot">
-          <span>Jummah: 1:30 PM &amp; 3:30 PM</span>
-          <a href="prayer-times.html">Full timetable</a>
-        </div>
-      </aside>
-      <div id="ijtima">
-        <div class="head left">
-          <p class="kicker">Every Thursday</p>
-          <h2>Weekly Ijtima, open to everyone</h2>
-          <div class="ornament" aria-hidden="true">✦</div>
-        </div>
-        <p>A weekly spiritual gathering with recitation, a bayan on the topic of the week, remembrance of Allah and a heartfelt dua.</p>
-        <ul class="parts">{IJTIMA_PARTS}</ul>
-        <ul class="facts">
-          <li><b>When</b><span>Thursdays at 7:00 PM</span></li>
-          <li><b>Where</b><span>{V_ADDRESS}</span></li>
-          <li><b>Also</b><span>Dinner served · separate arrangement for sisters</span></li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="block alt">
-    <div class="wrap">
-      <div class="head">
-        <p class="kicker">At this centre</p>
-        <h2>Our services to the community</h2>
-        <div class="ornament" aria-hidden="true">✦</div>
-      </div>
-      <div class="programs four">
-{V_SERVICES}
-      </div>
-    </div>
-  </section>
-
-{donate_section("centre")}
-  <section class="block">
-    <div class="wrap visit">
-      <div>
-        <div class="head left">
-          <p class="kicker">Visit us</p>
-          <h2>Find Faizan e Madina Vancouver</h2>
-          <div class="ornament" aria-hidden="true">✦</div>
-        </div>
-        <ul>
-          <li><b>Address</b><span>{V_ADDRESS}</span></li>
-          <li><b>Open</b><span>Daily for all five prayers</span></li>
-          <li><b>Phone</b><span><a href="tel:+17788950886">{V_PHONE}</a></span></li>
-          <li><b>Parking</b><span>{tbc()}</span></li>
-        </ul>
-        <a class="btn btn-green" href="https://www.google.com/maps/search/?api=1&amp;query={V_MAP_Q}" target="_blank" rel="noopener">Get directions</a>
-      </div>
-      <div class="map-slot">
-        <iframe title="Map of Faizan e Madina Vancouver" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q={V_MAP_Q}&amp;output=embed"></iframe>
-      </div>
+    <div class="wrap narrow">
+      <div class="events" data-events><p class="muted">Loading events…</p></div>
+      <p class="muted centres-note">Weekly gatherings take place at every centre. Contact your <a href="centres.html">nearest centre</a> for its schedule.</p>
     </div>
   </section>
 </main>
 '''
 
-PT_MAIN = (ROOT / "partials/prayer-main.html").read_text()
 
-pages = {
-    "index.html": (head("Dawat-e-Islami Canada", "Dawat-e-Islami Canada: masajid, Qur'an classes, weekly gatherings and donations across Canada.")
-                   + header("") + HOME),
-    "centres.html": (head("Centres | Dawat-e-Islami Canada", "Faizan e Madina centres of Dawat-e-Islami across Canada.")
-                     + header("centres") + CENTRES_PAGE),
-    "vancouver.html": (head("Faizan e Madina Vancouver | Dawat-e-Islami Canada", "Prayer times, weekly Ijtima and services at Faizan e Madina Vancouver, 7062 134 Street, Surrey, BC.")
-                       + header("centres", local_prayer=True) + VANCOUVER),
-    "prayer-times.html": (head("Prayer times | Faizan e Madina Vancouver", "Monthly prayer and jama'at times for Faizan e Madina Vancouver (Hanafi).")
-                          + header("centres", local_prayer=True) + PT_MAIN),
+def donate_page():
+    types = "\n".join(f'          <li><b>{t}</b><span>{d}</span></li>' for t, d in DONATION_TYPES)
+    return f'''<main id="main">
+{page_head("Donate", "Support our masajid, Qur'an classes and community programs", "Donate")}
+  <section class="block">
+    <div class="wrap donate">
+      <div>
+{section_head("Support us", "Your extra is someone's need", left=True)}
+        <p>Every donation helps keep our centres open, pays for Qur'an classes and supports the community. Please choose the type of donation so it is used correctly.</p>
+        <p class="hadith">"Charity does not decrease wealth." <span>Sahih Muslim, 2588</span></p>
+        <ul class="types">
+{types}
+        </ul>
+      </div>
+{give_box(full=True)}
+    </div>
+  </section>
+
+  <section class="block alt">
+    <div class="wrap narrow">
+{section_head("Tax receipts", "Official donation receipts")}
+      <p>Dawat-e-Islami Canada is a registered Canadian charity (BN {BN}). Official tax receipts are issued for eligible donations.</p>
+      <p>When donating by Interac e-Transfer, include your <b>full name and mailing address</b> in the message so a receipt can be issued. For receipt questions, email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
+    </div>
+  </section>
+</main>
+'''
+
+
+def contact_page():
+    groups = []
+    for prov in dict.fromkeys(c["province"] for c in CENTRES):
+        seen, rows = set(), []
+        for c in CENTRES:
+            if c["province"] == prov and (c["city"], c["phone"]) not in seen:
+                seen.add((c["city"], c["phone"]))
+                rows.append(f'<li><span>{c["city"]}</span><a href="tel:{tel(c["phone"])}">{c["phone"]}</a></li>')
+        groups.append(f'''        <div class="contact-prov">
+          <h3>{prov}</h3>
+          <ul>{"".join(rows)}</ul>
+        </div>''')
+    return f'''<main id="main">
+{page_head("Contact us", "We would love to hear from you", "Contact")}
+  <section class="block">
+    <div class="wrap contact-top">
+      <a class="contact-card" href="mailto:{EMAIL}">
+        <div class="ic">{svg("mail")}</div>
+        <h2>Email</h2>
+        <p>{EMAIL}</p>
+      </a>
+      <div class="contact-card">
+        <div class="ic">{svg("pin")}</div>
+        <h2>Registered office</h2>
+        <p>{OFFICE}</p>
+      </div>
+    </div>
+  </section>
+  <section class="block alt">
+    <div class="wrap">
+{section_head("By province", "Phone numbers", "Call the number for your area. For centre addresses, see the centres page.")}
+      <div class="contact-grid">
+{chr(10).join(groups)}
+      </div>
+      <p class="center-cta"><a class="btn btn-green" href="centres.html">View all centres</a></p>
+    </div>
+  </section>
+</main>
+'''
+
+
+def privacy_page():
+    return f'''<main id="main">
+{page_head("Privacy policy", "How this website handles your information", "Privacy policy")}
+  <section class="block">
+    <div class="wrap narrow prose">
+      <p class="muted">Last updated: October 2026. {tbc("Draft, to be reviewed by management")}</p>
+      <h2>What we collect</h2>
+      <p>This website does not ask you to create an account and does not use advertising or tracking cookies. We may use privacy-friendly visitor statistics (such as Cloudflare Web Analytics) that count page visits without identifying you.</p>
+      <h2>When you contact us</h2>
+      <p>If you email or phone us, we use your details only to reply to you, and we do not sell or share them.</p>
+      <h2>Donations</h2>
+      <p>Online donations are processed by a third-party payment provider, and Interac e-Transfers by your bank. Their privacy policies apply. We keep the name and address you give us only to issue tax receipts and to meet the Canada Revenue Agency's record-keeping requirements.</p>
+      <h2>Links to other websites</h2>
+      <p>This site links to other Dawat-e-Islami websites, YouTube and map services, which have their own privacy policies.</p>
+      <h2>Questions</h2>
+      <p>For any privacy question, email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
+    </div>
+  </section>
+</main>
+'''
+
+
+def terms_page():
+    return f'''<main id="main">
+{page_head("Terms of use", "Using this website", "Terms of use")}
+  <section class="block">
+    <div class="wrap narrow prose">
+      <p class="muted">Last updated: October 2026. {tbc("Draft, to be reviewed by management")}</p>
+      <h2>About this website</h2>
+      <p>This website is run by Dawat-e-Islami Canada, a registered Canadian charity (BN {BN}), to share information about our centres, programs and events.</p>
+      <h2>Accuracy</h2>
+      <p>We try to keep all information, including timings and addresses, accurate and up to date. Timings can change, so please confirm with the centre before travelling.</p>
+      <h2>Content</h2>
+      <p>The text, images and logos on this site belong to Dawat-e-Islami Canada or are used with permission. Please do not reuse them without permission.</p>
+      <h2>External links</h2>
+      <p>We are not responsible for the content of other websites we link to.</p>
+      <h2>Contact</h2>
+      <p>Questions about these terms can be sent to <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
+    </div>
+  </section>
+</main>
+'''
+
+
+def not_found():
+    return f'''<main id="main">
+{page_head("Page not found", "The page you are looking for has moved or does not exist", "Not found")}
+  <section class="block">
+    <div class="wrap narrow center">
+      <p><a class="btn btn-green" href="index.html">Go to the home page</a></p>
+    </div>
+  </section>
+</main>
+'''
+
+
+PAGES = {
+    "index.html": ("Dawat-e-Islami Canada", "Dawat-e-Islami Canada: masajid, Qur'an classes, weekly gatherings and community programs across Canada.", home),
+    "about.html": ("About us | Dawat-e-Islami Canada", "About Dawat-e-Islami, its founder Ameer-e-Ahl-e-Sunnat, and its work in Canada.", about),
+    "services.html": ("Services | Dawat-e-Islami Canada", "Weekly Ijtima, Madrasa-tul-Madina, Qur'an classes, Islamic school, courses and more.", services_page),
+    "departments.html": ("Departments | Dawat-e-Islami Canada", "The departments of Dawat-e-Islami Canada.", departments_page),
+    "centres.html": ("Centres | Dawat-e-Islami Canada", "Faizan-e-Madina centres of Dawat-e-Islami across Canada, with addresses and phone numbers.", centres_page),
+    "events.html": ("Events | Dawat-e-Islami Canada", "Upcoming gatherings, programs and announcements from Dawat-e-Islami Canada.", events_page),
+    "donate.html": ("Donate | Dawat-e-Islami Canada", "Donate Zakat, Sadaqah, Fitrah and more to Dawat-e-Islami Canada, a registered Canadian charity.", donate_page),
+    "contact.html": ("Contact | Dawat-e-Islami Canada", "Contact Dawat-e-Islami Canada by email or phone.", contact_page),
+    "privacy.html": ("Privacy policy | Dawat-e-Islami Canada", "Privacy policy of the Dawat-e-Islami Canada website.", privacy_page),
+    "terms.html": ("Terms of use | Dawat-e-Islami Canada", "Terms of use of the Dawat-e-Islami Canada website.", terms_page),
+    "404.html": ("Page not found | Dawat-e-Islami Canada", "This page could not be found.", not_found),
 }
-for name, html in pages.items():
-    (ROOT / name).write_text(html + FOOTER)
-print("built", ", ".join(pages))
+
+NO_NAV = {"index.html", "privacy.html", "terms.html", "404.html"}
+
+for name, (title, desc, fn) in PAGES.items():
+    current = "" if name in NO_NAV else name
+    (ROOT / name).write_text(head(name, title, desc) + header(current) + fn() + footer())
+
+# Old Vancouver pages now live on the Vancouver centre's own site
+for old in ["vancouver.html", "prayer-times.html"]:
+    (ROOT / old).write_text(f'''<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Moved | Dawat-e-Islami Canada</title>
+<meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={VANCOUVER_SITE}">
+<link rel="canonical" href="{VANCOUVER_SITE}"></head>
+<body><p>This page has moved to <a href="{VANCOUVER_SITE}">{VANCOUVER_SITE}</a>.</p></body></html>
+''')
+
+# Hosting files (Cloudflare Pages reads _redirects and _headers)
+(ROOT / "_redirects").write_text(f"""/vancouver.html {VANCOUVER_SITE} 301
+/vancouver {VANCOUVER_SITE} 301
+/prayer-times.html {VANCOUVER_SITE} 301
+/prayer-times {VANCOUVER_SITE} 301
+""")
+(ROOT / "_headers").write_text("""/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+""")
+(ROOT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {SITE}/sitemap.xml\n")
+urls = "\n".join(
+    f"  <url><loc>{SITE}/{'' if n == 'index.html' else n.replace('.html', '')}</loc></url>"
+    for n in PAGES if n != "404.html")
+(ROOT / "sitemap.xml").write_text(
+    f'<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n{urls}\n</urlset>\n')
+
+print("built", len(PAGES), "pages, version", V)
