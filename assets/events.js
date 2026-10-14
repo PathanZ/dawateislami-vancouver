@@ -1,23 +1,13 @@
 /*
-  Events and announcements shown on the home page and the Events page.
+  Special announcements, shown at the top of the Events page.
+  (Regular weekly gatherings and classes are in content.py instead.)
 
   One-off event:
-    { date: "2026-11-05", time: "7:00 PM", title: "...", centre: "Vancouver",
+    { date: "2026-11-05", time: "7:00 PM", title: "...", centre: "Faizan-e-Madina Calgary",
       details: "...", image: "assets/img/events/poster.jpg", link: "https://..." }
     It disappears automatically the day after its date.
 
-  Weekly event (repeats every week):
-    { weekly: "Thursday", time: "7:00 PM", title: "...", centre: "Vancouver", details: "..." }
-
-  image and link are optional.
+  image and link are optional. When the list is empty, the Announcements section is hidden.
 */
 window.DI_EVENTS = [
-  {
-    weekly: "Thursday",
-    time: "7:00 PM",
-    title: "Weekly Ijtima",
-    centre: "Faizan-e-Madina Vancouver, Surrey",
-    details: "Tilawat, naat, bayan, zikr, dua and salam. Dinner served, with a separate arrangement for sisters.",
-    link: "https://dawateislamivancouver.ca"
-  }
 ];

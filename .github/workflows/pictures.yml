@@ -1,0 +1,34 @@
+# Downloads every outside picture listed in assets/img/ext/sources.txt into this repo,
+# so the site no longer depends on other servers. Runs by itself when the list changes,
+# or by hand from the Actions tab ("Download pictures" > Run workflow).
+name: Download pictures
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["assets/img/ext/sources.txt"]
+permissions:
+  contents: write
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download
+        run: |
+          cd assets/img/ext
+          while read -r url; do
+            [ -z "$url" ] && continue
+            name=$(basename "${url%%\?*}" | sed 's/[^A-Za-z0-9._-]/_/g')
+            [ -f "$name" ] && continue
+            curl -fsSL --retry 3 -o "$name" "$url" || { echo "could not download $url"; rm -f "$name"; }
+          done < sources.txt
+      - name: Rebuild pages to use the downloaded copies
+        run: python3 build.py
+      - name: Save
+        run: |
+          git config user.name "PathanZ"
+          git config user.email "PathanZ@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Download outside pictures"
+          git push
