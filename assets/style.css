@@ -345,3 +345,12 @@ a.card:hover,.card.hoverable:hover{box-shadow:0 0 0 2px var(--navy) inset}
 @media (max-width:480px){.topbar .bismillah{font-size:15px}.live{font-size:13px}}
 [hidden]{display:none!important}
 .form-err:empty{display:none}
+.b-slider{grid-column:1/-1!important;aspect-ratio:1024/370;min-height:0}
+.b-hero{grid-row:span 2}
+.pcard .ph.poster{aspect-ratio:1/1;background:var(--navy-deep)}
+.pcard .ph.poster img{object-fit:contain}
+.page-head .head-img{background:var(--navy-deep)}
+.page-head .head-img img{object-fit:contain}
+@media (max-width:980px){.b-slider{aspect-ratio:1024/370}}
+.page-head .head-img.poster{aspect-ratio:4/5;max-height:520px;width:100%;justify-self:center}
+@media (max-width:600px){.slide-ctrl{display:none}.slide-dots{bottom:10px;left:12px}}

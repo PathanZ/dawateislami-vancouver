@@ -197,7 +197,7 @@ def footer(pre):
 '''
 
 
-def page_head(title, sub, crumbs, pre, actions="", image=""):
+def page_head(title, sub, crumbs, pre, actions="", image="", poster=False):
     trail = f'<a href="{pre}index.html">Home</a>'
     for label, href in crumbs[:-1]:
         trail += f' <span>›</span> <a href="{pre}{href}">{label}</a>'
@@ -211,7 +211,7 @@ def page_head(title, sub, crumbs, pre, actions="", image=""):
     if image:
         return f'''  <section class="page-head has-img"><div class="wrap"><div class="tile-head">
       {text}
-      <div class="head-img"><img src="{image}" alt="" loading="eager"></div>
+      <div class="head-img{' poster' if poster else ''}"><img src="{image}" alt="" loading="eager"></div>
     </div></div></section>
 '''
     return f'''  <section class="page-head"><div class="wrap"><div class="tile-head">
@@ -272,7 +272,7 @@ def event_card(ev, pre):
 
 
 def course_card(co, pre):
-    ph = (f'<div class="ph"><img src="{img(co["img"], pre)}" alt="" loading="lazy"></div>' if co["img"]
+    ph = (f'<div class="ph poster"><img src="{img(co["img"], pre)}" alt="" loading="lazy"></div>' if co["img"]
           else f'<div class="ph icon">{svg("quran")}</div>')
     ages = (f'Ages {co["ages"]}' if co["ages"][:1].isdigit() else co["ages"])
     bits = " · ".join(x for x in [co["when"], ages] if x)
@@ -377,13 +377,6 @@ def home(pre):
           <a class="btn btn-ghost" href="{pre}events.html">See what's on</a>
         </div>
       </div>
-      <div class="tile b-slider" data-slider aria-roledescription="carousel" aria-label="Highlights">
-        <div class="slides">
-{slides}
-        </div>
-        <div class="slide-dots" aria-hidden="true">{dots}</div>
-        <div class="slide-ctrl"><button type="button" data-prev aria-label="Previous slide">‹</button><button type="button" data-next aria-label="Next slide">›</button></div>
-      </div>
       <a class="tile gold b-donate" href="{pre}donate.html">
         <h3>Donate</h3>
         <p>Zakat, Fitrana, Sadaqah and masjid building →</p>
@@ -399,9 +392,12 @@ def home(pre):
         <h3>Qur'an classes</h3>
         <p class="muted">For children and adults</p>
       </a>
-      <div class="tile cream b-maqsad">
-        <p class="kicker">Our Madani Maqsad</p>
-        <blockquote>"I must strive to reform myself and the people of the entire world, In sha Allah."</blockquote>
+      <div class="tile b-slider" data-slider aria-roledescription="carousel" aria-label="Highlights">
+        <div class="slides">
+{slides}
+        </div>
+        <div class="slide-dots" aria-hidden="true">{dots}</div>
+        <div class="slide-ctrl"><button type="button" data-prev aria-label="Previous slide">‹</button><button type="button" data-next aria-label="Next slide">›</button></div>
       </div>
     </div>
   </section>
@@ -766,7 +762,7 @@ def event_detail(ev):
         return f'''<main id="main">
 {page_head(ev["title"], f'Every {ev["day"]} · {ev["time"]}', [("Events", "events.html"), (ev["title"], "")], pre,
            f'<a class="btn btn-gold" href="{maps_search(ev["venue"])}" target="_blank" rel="noopener">Get directions</a><a class="btn btn-ghost" href="{pre}centres/{c["slug"]}.html">About the centre</a>',
-           img(ev["img"], pre) if ev["img"] else "")}
+           img(ev["img"], pre) if ev["img"] else "", poster=True)}
   <section class="section">
     <div class="wrap detail">
       <div class="tile prose">
@@ -807,7 +803,7 @@ def course_detail(co):
         return f'''<main id="main">
 {page_head(co["title"], f'{co["city"]} · {co["when"]}', [("Classes", "events.html#courses"), (co["title"], "")], pre,
            call + f'<a class="btn btn-ghost" href="{pre}centres/{c["slug"]}.html">About the centre</a>',
-           img(co["img"], pre) if co["img"] else "")}
+           img(co["img"], pre) if co["img"] else "", poster=True)}
   <section class="section">
     <div class="wrap detail">
       <div class="tile prose">

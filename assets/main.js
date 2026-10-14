@@ -43,6 +43,12 @@
     function start() { if (!reduce) { clearInterval(timer); timer = setInterval(function () { show(i + 1); }, 5500); } }
     $('[data-next]', sl).addEventListener('click', function () { show(i + 1); start(); });
     $('[data-prev]', sl).addEventListener('click', function () { show(i - 1); start(); });
+    var x0 = null;
+    sl.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    sl.addEventListener('touchend', function (e) {
+      if (x0 === null) return; var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) { show(i + (dx < 0 ? 1 : -1)); start(); }
+    });
     start();
   }
 
