@@ -26,7 +26,8 @@ shows a yellow TBD label on the site.
 
 Pictures are linked from the Dawat-e-Islami Canada media store and dawateislami.co.uk. The
 "Download pictures" GitHub Action copies them into `assets/img/ext/` so the site no longer depends
-on those servers; `build.py` uses the local copy automatically once it exists.
+on those servers, then `tools/optimize_images.py` makes small WebP copies in `assets/img/opt/` for fast
+mobile loading. `build.py` uses the smallest local copy automatically once it exists.
 
 ## Hosting
 

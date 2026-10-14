@@ -1,7 +1,7 @@
 /* Dawat-e-Islami Canada — national site. Signature colour: navy (from the logo). Gold = Donate. Pink = sisters. */
 :root{
   --navy:#12285f; --navy-deep:#0b1a40; --navy-2:#1c3a82; --on-navy:#c8d0ea;
-  --gold:#c9a227; --gold-deep:#8a6d10; --gold-soft:#fbf3da;
+  --gold:#c9a227; --gold-deep:#735a08; --gold-soft:#fbf3da;
   --bg:#f2f4f9; --surface:#ffffff; --ink:#141b3d; --muted:#5a6079; --line:#e1e5ef;
   --sky:#e8edf8; --sky-2:#dbe3f5; --pink:#b5446e; --pink-soft:#fdecf3; --warn:#8a5a00; --warn-soft:#fff4d6;
   --r:22px; --r-sm:14px;
@@ -354,3 +354,26 @@ a.card:hover,.card.hoverable:hover{box-shadow:0 0 0 2px var(--navy) inset}
 @media (max-width:980px){.b-slider{aspect-ratio:1024/370}}
 .page-head .head-img.poster{aspect-ratio:4/5;max-height:520px;width:100%;justify-self:center}
 @media (max-width:600px){.slide-ctrl{display:none}.slide-dots{bottom:10px;left:12px}}
+/* Headings that look like h3 but keep the page outline in order */
+h2.h3{font-size:19px;font-weight:700;letter-spacing:-.01em}
+.side h2.h3{font-size:18px;margin-bottom:6px}
+.site-footer h2.fh{color:#fff;font-size:15px;margin-bottom:12px;letter-spacing:0}
+.b-hero ~ .tile h2.h3,.b-donate h2.h3{font-size:21px}
+.b-donate h2.h3{font-size:22px}
+/* Tap-to-load maps */
+.map{position:relative}
+.map-load{position:absolute;inset:0;width:100%;border:0;cursor:pointer;font:inherit;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:20px;text-align:center;
+  background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.7),transparent 60%),repeating-linear-gradient(45deg,var(--sky) 0 18px,var(--sky-2) 18px 36px)}
+.map-load b{font-size:17px;background:var(--surface);border-radius:999px;padding:10px 18px;box-shadow:0 4px 14px rgba(11,26,64,.12)}
+.map-load span{font-size:14px;color:var(--muted);max-width:28em;background:rgba(255,255,255,.85);border-radius:8px;padding:2px 8px}
+.map-load:hover b{background:var(--navy);color:#fff}
+.map > .link{position:absolute;inset:auto 0 12px;justify-content:center}
+/* Broken pictures: hide, keep the coloured box */
+img.broken{visibility:hidden}
+/* Phone numbers never split across lines */
+a[href^="tel:"]{white-space:nowrap}
+/* Without JavaScript the menu still works on phones */
+html.no-js .menu-toggle{display:none}
+@media (max-width:1080px){html.no-js .nav{display:flex;position:static;flex-wrap:wrap;flex-direction:row;box-shadow:none;margin:0 0 10px}html.no-js .site-header .wrap{flex-wrap:wrap}}
+html.no-js .slide{opacity:1}
+html.no-js .slide + .slide{display:none}

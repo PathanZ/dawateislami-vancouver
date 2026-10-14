@@ -15,6 +15,7 @@ ROOT = Path(__file__).parent
 ASSETS = ["assets/style.css", "assets/main.js", "assets/events.js"]
 V = hashlib.md5(b"".join((ROOT / f).read_bytes() for f in ASSETS)).hexdigest()[:8]
 EXT = ROOT / "assets/img/ext"
+OPT = ROOT / "assets/img/opt"
 REMOTE = set()          # every remote picture used, so they can be downloaded later (see README)
 WRITTEN = []            # every page written, for the sitemap
 CENTRE = {c["slug"]: c for c in CENTRES}
@@ -44,14 +45,33 @@ def img(url, pre):
         return ""
     if url.startswith("http"):
         REMOTE.add(url)
+        if (OPT / (local_name(url) + ".webp")).exists():
+            return f"{pre}assets/img/opt/{local_name(url)}.webp"
         if (EXT / local_name(url)).exists():
             return f"{pre}assets/img/ext/{local_name(url)}"
         return url
     return pre + url
 
 
+def srcset(url, pre):
+    """Let phones download the smaller copy of a card picture."""
+    small = OPT / (local_name(url) + ".480.webp")
+    if url.startswith("http") and small.exists():
+        return (f' srcset="{pre}assets/img/opt/{small.name} 480w, {img(url, pre)} 960w"'
+                f' sizes="(max-width: 700px) 92vw, 400px"')
+    return ""
+
+
 def maps_search(q):
     return "https://www.google.com/maps/search/?api=1&amp;query=" + quote_plus(q)
+
+
+def map_box(q, title, fid=""):
+    """A map that only loads when tapped, to save mobile data and keep pages fast."""
+    idattr = f' id="{fid}"' if fid else ""
+    return (f'<div class="map" data-map="{maps_embed(q)}" data-title="{title}"{idattr}>'
+            f'<button type="button" class="map-load">{svg("pin", 28)}<b>Show map</b><span>{e(q)}</span></button>'
+            f'<noscript><a class="link" href="{maps_search(q)}">Open in Google Maps</a></noscript></div>')
 
 
 def maps_embed(q):
@@ -94,12 +114,16 @@ NAV = [("about.html", "About"), ("departments.html", "Departments"), ("centres.h
        ("events.html", "Events &amp; Classes"), ("jamia.html", "Jamia"), ("contact.html", "Contact")]
 
 
+FONTS = "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap"
+
+
 def head(path, title, desc, pre):
     url = f"{SITE}/" if path == "index.html" else f"{SITE}/{path.replace('.html', '')}"
-    return f'''<!doctype html>
-<html lang="en">
+    return f'''<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
+<script>document.documentElement.className="js"</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#12285f">
 <title>{e(title)}</title>
@@ -115,7 +139,9 @@ def head(path, title, desc, pre):
 <link rel="icon" href="{pre}assets/img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="{pre}assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{FONTS}" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="{FONTS}"></noscript>
+<link rel="manifest" href="{pre}manifest.webmanifest">
 <link rel="stylesheet" href="{pre}assets/style.css?v={V}">
 </head>
 <body>
@@ -125,8 +151,8 @@ def head(path, title, desc, pre):
 
 def header(current, pre):
     links = "\n      ".join(
-        f'<a href="{pre}{h}"{" aria-current=page" if h == current else ""}>{t}</a>' for h, t in NAV)
-    dc = " aria-current=page" if current == "donate.html" else ""
+        '<a href="' + pre + h + '"' + (' aria-current="page"' if h == current else "") + '>' + t + '</a>' for h, t in NAV)
+    dc = ' aria-current="page"' if current == "donate.html" else ""
     return f'''<div class="topbar">
   <div class="wrap">
     <span class="arabic bismillah" lang="ar">بِسْمِ اللّٰهِ الرَّحْمٰنِ الرَّحِيْمِ</span>
@@ -135,7 +161,7 @@ def header(current, pre):
 </div>
 <header class="site-header">
   <div class="wrap">
-    <a class="logo" href="{pre}index.html"><img src="{pre}assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami Canada home"></a>
+    <a class="logo" href="{pre}index.html"><img src="{pre}assets/img/logo-sm.webp" width="400" height="108" alt="Dawat-e-Islami Canada home"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav class="nav" id="nav" aria-label="Main">
       {links}
@@ -154,12 +180,12 @@ def footer(pre):
   <div class="wrap">
     <div class="cols">
       <div>
-        <img class="footer-logo" src="{pre}assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami Canada" loading="lazy">
+        <img class="footer-logo" src="{pre}assets/img/logo-white-sm.webp" width="400" height="108" alt="Dawat-e-Islami Canada" loading="lazy">
         <p>A global, non-political movement spreading the teachings of the Qur'an and Sunnah, with {len(CENTRES)} centres across Canada.</p>
         <p class="bn">Registered Canadian charity · BN {BN}</p>{soc}
       </div>
       <div>
-        <h4>Visit</h4>
+        <h2 class="fh">Visit</h2>
         <ul>
           <li><a href="{pre}centres.html">Centres</a></li>
           <li><a href="{pre}events.html">Events</a></li>
@@ -169,7 +195,7 @@ def footer(pre):
         </ul>
       </div>
       <div>
-        <h4>Give &amp; contact</h4>
+        <h2 class="fh">Give &amp; contact</h2>
         <ul>
           <li><a href="{pre}donate.html">Donate</a></li>
           <li><a href="{pre}receipt.html">Donation receipt</a></li>
@@ -178,7 +204,7 @@ def footer(pre):
         </ul>
       </div>
       <div>
-        <h4>Dawat-e-Islami worldwide</h4>
+        <h2 class="fh">Dawat-e-Islami worldwide</h2>
         <ul>
 {ww}
         </ul>
@@ -237,7 +263,7 @@ def centre_card(c, pre, show_map=False):
     mapb = (f'<a href="#map" class="map-btn" data-q="{e(c["address"])}" data-name="{e(c["name"])}">Show on map</a>'
             if show_map else "")
     return f'''        <article class="card pcard">
-          <a class="ph" href="{pre}centres/{c["slug"]}.html" tabindex="-1" aria-hidden="true"><img src="{img(c["img"], pre)}" alt="" loading="lazy"></a>
+          <a class="ph" href="{pre}centres/{c["slug"]}.html" tabindex="-1" aria-hidden="true"><img src="{img(c["img"], pre)}"{srcset(c["img"], pre)} alt="" loading="lazy"></a>
           <div class="bd">
             <p class="city">{c["city"]}, {c["province"]}</p>
             <h3>{c["name"]}</h3>
@@ -272,7 +298,7 @@ def event_card(ev, pre):
 
 
 def course_card(co, pre):
-    ph = (f'<div class="ph poster"><img src="{img(co["img"], pre)}" alt="" loading="lazy"></div>' if co["img"]
+    ph = (f'<div class="ph poster"><img src="{img(co["img"], pre)}"{srcset(co["img"], pre)} alt="" loading="lazy"></div>' if co["img"]
           else f'<div class="ph icon">{svg("quran")}</div>')
     ages = (f'Ages {co["ages"]}' if co["ages"][:1].isdigit() else co["ages"])
     bits = " · ".join(x for x in [co["when"], ages] if x)
@@ -347,7 +373,7 @@ def appeal(pre):
 # ---------------------------------------------------------------- home
 def home(pre):
     slides = "\n".join(
-        f'          <div class="slide{" on" if i == 0 else ""}"><img src="{img(u, pre)}" alt="{e(a)}" {"loading=eager" if i == 0 else "loading=lazy"}></div>'
+        f'          <div class="slide{" on" if i == 0 else ""}"><img src="{img(u, pre)}" alt="{e(a)}" {'loading="eager" fetchpriority="high"' if i == 0 else 'loading="lazy"'}></div>'
         for i, (u, a) in enumerate(HERO_SLIDES))
     dots = "".join(f'<span{" class=on" if i == 0 else ""}></span>' for i in range(len(HERO_SLIDES)))
     nxt = EVENTS[0]
@@ -378,21 +404,21 @@ def home(pre):
         </div>
       </div>
       <a class="tile gold b-donate" href="{pre}donate.html">
-        <h3>Donate</h3>
+        <h2 class="h3">Donate</h2>
         <p>Zakat, Fitrana, Sadaqah and masjid building →</p>
       </a>
-      <a class="tile navy b-live" href="{LIVE_URL}" target="_blank" rel="noopener"><span class="chip">● Live now</span><h3>Madani Channel</h3><p>Watch in English, 24/7 →</p></a>
+      <a class="tile navy b-live" href="{LIVE_URL}" target="_blank" rel="noopener"><span class="chip">● Live now</span><h2 class="h3">Madani Channel</h2><p>Watch in English, 24/7 →</p></a>
       <a class="tile b-next" href="{pre}events/{nxt["slug"]}.html" style="text-decoration:none;color:inherit">
         <span class="chip">{nxt["day"]}s</span>
-        <h3>{nxt["title"]}</h3>
+        <h2 class="h3">{nxt["title"]}</h2>
         <p class="muted">{nxt["time"]}</p>
       </a>
       <a class="tile sky b-next" href="{pre}events.html#courses" style="text-decoration:none;color:inherit">
         <span class="chip">{len(COURSES)} classes</span>
-        <h3>Qur'an classes</h3>
+        <h2 class="h3">Qur'an classes</h2>
         <p class="muted">For children and adults</p>
       </a>
-      <div class="tile b-slider" data-slider aria-roledescription="carousel" aria-label="Highlights">
+      <div class="tile b-slider" data-slider role="region" aria-roledescription="carousel" aria-label="Highlights">
         <div class="slides">
 {slides}
         </div>
@@ -549,7 +575,7 @@ def about(pre):
         <p class="kicker">Learn more</p>
         <h2 style="margin:6px 0 10px">Dawat-e-Islami worldwide</h2>
         <ul class="facts">
-{ww.replace("<li>", "<li class='one'>")}
+{ww.replace("<li>", '<li class="one">')}
         </ul>
       </div>
     </div>
@@ -600,12 +626,12 @@ def dept_detail(d):
       </div>
       <div class="side">
         <div class="tile sky">
-          <h3>Get involved</h3>
+          <h2 class="h3">Get involved</h2>
           <p>Find a centre near you, or send us a message.</p>
           <div class="actions" style="margin-top:12px"><a class="btn btn-navy" href="{pre}centres.html">Find a centre</a><a class="btn btn-line" href="{pre}contact.html">Contact us</a></div>
         </div>
         <div class="tile cream">
-          <h3>Support this work</h3>
+          <h2 class="h3">Support this work</h2>
           <p>Donations to {name} help keep it free for everyone.</p>
           <p style="margin-top:12px"><a class="btn btn-gold" href="{pre}donate.html{donate_param(slug)}">Donate</a></p>
         </div>
@@ -641,11 +667,11 @@ def centres_page(pre):
       <div class="centre-map" id="map">
         <div class="tile">
           <p class="kicker">On the map</p>
-          <h3 id="mapName">{first["name"]}</h3>
+          <h2 class="h3" id="mapName">{first["name"]}</h2>
           <p class="muted" id="mapAddr">{first["address"]}</p>
           <p class="muted" style="font-size:14.5px">Tap <b>Show on map</b> on any centre to see it here.</p>
         </div>
-        <div class="map"><iframe id="mapFrame" title="Map of the selected centre" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="{maps_embed(first["address"])}"></iframe></div>
+        {map_box(first["address"], "Map of the selected centre", "mapFrame")}
       </div>
       <nav class="jump" aria-label="Provinces">{jump}</nav>
 {chr(10).join(groups)}
@@ -670,7 +696,7 @@ def centre_detail(c):
     </div>
   </section>''' if progs else f'''  <section class="section tight">
     <div class="wrap">
-      <div class="tile sky"><h3>Programs at this centre</h3><p class="muted" style="margin-top:6px">A weekly gathering is held at every centre. Call {e(c["phone"])} for this centre's timings. <span class="tbd">TBD</span></p></div>
+      <div class="tile sky"><h2 class="h3">Programs at this centre</h2><p class="muted" style="margin-top:6px">A weekly gathering is held at every centre. Call {e(c["phone"])} for this centre's timings. <span class="tbd">TBD</span></p></div>
     </div>
   </section>''')
         site = (f'<li><b>Website</b><span><a href="{c["site"]}" target="_blank" rel="noopener">{c["site"].replace("https://", "")}</a></span></li>'
@@ -692,7 +718,7 @@ def centre_detail(c):
       </div>
       <div class="side">
         <div class="tile">
-          <h3>Centre information</h3>
+          <h2 class="h3">Centre information</h2>
           <ul class="facts">
             <li><b>Address</b><span>{c["address"]}</span></li>
             <li><b>Phone</b><span>{phone_link(c["phone"])}</span></li>
@@ -706,7 +732,7 @@ def centre_detail(c):
 {prog_block}
   <section class="section tight">
     <div class="wrap detail">
-      <div class="map"><iframe title="Map of {e(c["name"])}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="{maps_embed(c["address"])}"></iframe></div>
+      {map_box(c["address"], "Map of " + e(c["name"]))}
       <div class="tile navy" style="display:flex;flex-direction:column;gap:12px;justify-content:center">
         <p class="kicker">Support {c["city"]}</p>
         <h2 style="font-size:26px">Help keep this centre running</h2>
@@ -774,7 +800,7 @@ def event_detail(ev):
       </div>
       <div class="side">
         <div class="tile">
-          <h3>Details</h3>
+          <h2 class="h3">Details</h2>
           <ul class="facts">
             <li><b>When</b><span>Every {ev["day"]}, {ev["time"]}</span></li>
             {ln}
@@ -814,7 +840,7 @@ def course_detail(co):
       </div>
       <div class="side">
         <div class="tile">
-          <h3>Details</h3>
+          <h2 class="h3">Details</h2>
           <ul class="facts">
 {facts}
             <li><b>Phone</b><span>{phones}</span></li>
@@ -902,7 +928,7 @@ def pillar_page(p):
           </ul>
         </div>
         <div class="tile">
-          <h3>Have a question?</h3>
+          <h2 class="h3">Have a question?</h2>
           <p>Ask a qualified mufti at Darul Ifta Ahl-e-Sunnat.</p>
           <p style="margin-top:10px"><a class="link" href="https://www.fatwaqa.com/en" target="_blank" rel="noopener">Ask a question →</a></p>
         </div>
@@ -978,17 +1004,17 @@ def donate_page(pre):
       </form>
       <aside class="side">
         <div class="tile" id="etransfer">
-          <h3>Interac e-Transfer</h3>
+          <h2 class="h3">Interac e-Transfer</h2>
           <p>For Faizan-e-Madina Masjid, Surrey. Send to the email for your type of donation, and include your full name and mailing address in the message for a tax receipt.</p>
 {etransfer_list()}
         </div>
         <div class="tile sky">
-          <h3>In person</h3>
+          <h2 class="h3">In person</h2>
           <p>You can donate at any of our centres after prayers.</p>
           <p style="margin-top:8px"><a class="link" href="{pre}centres.html">Find a centre →</a></p>
         </div>
         <div class="tile cream">
-          <h3>Need a tax receipt?</h3>
+          <h2 class="h3">Need a tax receipt?</h2>
           <p>Official receipts are issued for eligible donations.</p>
           <p style="margin-top:12px"><a class="btn btn-navy" href="{pre}receipt.html">Request a receipt</a></p>
         </div>
@@ -1032,7 +1058,7 @@ def receipt_page(pre):
       <form class="tile dform gform" id="receiptForm" {gform_attr(RECEIPT_GFORM)} novalidate>
         <h2 style="font-size:24px">Your details</h2>
         <div class="row2">
-          <div class="field"><label for="r_name">Full name</label><input id="r_name" name="name" autocomplete="name" required><small>As it should appear on the receipt.</small></div>
+          <div class="field"><label for="r_name">Full name</label><input id="r_name" type="text" name="name" autocomplete="name" required><small>As it should appear on the receipt.</small></div>
           <div class="field"><label for="r_email">Email</label><input id="r_email" name="email" type="email" autocomplete="email" required></div>
         </div>
         <div class="field"><label for="r_address">Mailing address</label><textarea id="r_address" name="address" autocomplete="street-address" required style="min-height:90px"></textarea></div>
@@ -1054,14 +1080,14 @@ def receipt_page(pre):
 {purposes}
           </div>
         </fieldset>
-        <label class="hp" aria-hidden="true">Leave empty <input name="website" tabindex="-1" autocomplete="off"></label>
+        <label class="hp" aria-hidden="true">Leave empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         <p class="form-err" role="alert"></p>
         <button class="btn btn-navy wide" type="submit">Send request</button>
         <p class="done" hidden>Thank you. Your request has been sent. We will email your receipt once it has been issued.</p>
       </form>
       <aside class="side">
         <div class="tile sky">
-          <h3>Good to know</h3>
+          <h2 class="h3">Good to know</h2>
           <p>Nafl donations are used by Dawat-e-Islami for every good and lawful purpose where appropriate.</p>
           <p style="margin-top:8px">Questions? Email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
         </div>
@@ -1082,7 +1108,7 @@ def contact_page(pre):
             if c["province"] == prov and (c["city"], c["phone"]) not in seen:
                 seen.add((c["city"], c["phone"]))
                 rows.append(f'<li><span>{c["city"]}</span>{phone_link(c["phone"])}</li>')
-        groups.append(f'''        <div class="tile"><h3>{prov}</h3><ul>{"".join(rows)}</ul></div>''')
+        groups.append(f'''        <div class="tile"><h2 class="h3">{prov}</h2><ul>{"".join(rows)}</ul></div>''')
     return f'''<main id="main">
 {page_head("Contact us", "Questions about events, classes, donations or a centre? We would love to hear from you.", [("Contact", "contact.html")], pre)}
   <section class="section">
@@ -1090,27 +1116,27 @@ def contact_page(pre):
       <form class="tile dform gform" id="contactForm" {gform_attr(CONTACT_GFORM)} novalidate>
         <h2 style="font-size:24px">Send us a message</h2>
         <div class="row2">
-          <div class="field"><label for="c_name">Full name</label><input id="c_name" name="name" autocomplete="name" required></div>
+          <div class="field"><label for="c_name">Full name</label><input id="c_name" type="text" name="name" autocomplete="name" required></div>
           <div class="field"><label for="c_email">Email</label><input id="c_email" name="email" type="email" autocomplete="email" required></div>
         </div>
         <div class="field"><label for="c_phone">Phone (optional)</label><input id="c_phone" name="phone" type="tel" autocomplete="tel"></div>
         <div class="field"><label for="c_msg">Your message</label><textarea id="c_msg" name="message" required></textarea><small>For a question about a centre, please mention your city.</small></div>
-        <label class="hp" aria-hidden="true">Leave empty <input name="website" tabindex="-1" autocomplete="off"></label>
+        <label class="hp" aria-hidden="true">Leave empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         <p class="form-err" role="alert"></p>
         <button class="btn btn-navy wide" type="submit">Send message</button>
         <p class="done" hidden>Thank you for your message. A member of our team will reply within 1 to 2 business days.</p>
       </form>
       <aside class="side">
         <div class="tile">
-          <h3>Email</h3>
+          <h2 class="h3">Email</h2>
           <p><a href="mailto:{EMAIL}">{EMAIL}</a></p>
         </div>
         <div class="tile">
-          <h3>Registered office</h3>
+          <h2 class="h3">Registered office</h2>
           <p>{OFFICE}</p>
         </div>
         <div class="tile sky">
-          <h3>Volunteer with us</h3>
+          <h2 class="h3">Volunteer with us</h2>
           <p>General questions, volunteering and local centre enquiries are all welcome. We usually reply within 1 to 2 business days.</p>
         </div>
       </aside>
@@ -1205,11 +1231,15 @@ write("contact.html", "Contact" + T, "Contact Dawat-e-Islami Canada by message, 
 write("privacy.html", "Privacy policy" + T, "Privacy policy of the Dawat-e-Islami Canada website.", privacy_page)
 write("terms.html", "Terms of use" + T, "Terms of use of the Dawat-e-Islami Canada website.", terms_page)
 write("404.html", "Page not found" + T, "This page could not be found.", not_found)
+# The 404 page is shown at whatever address was mistyped, so give it a <base> that points at the site root
+_p = ROOT / "404.html"
+_p.write_text(_p.read_text().replace('<meta charset="utf-8">', """<meta charset="utf-8">
+<script>(function(){var b="/";if(/github\\.io$/.test(location.hostname)){var s=location.pathname.split("/")[1];if(s)b="/"+s+"/";}document.write('<base href="'+b+'">');})()</script>""", 1))
 
 # Old addresses that moved
 MOVED = {"vancouver.html": VANCOUVER_SITE, "prayer-times.html": VANCOUVER_SITE, "services.html": "departments.html"}
 for old, new in MOVED.items():
-    (ROOT / old).write_text(f'''<!doctype html>
+    (ROOT / old).write_text(f'''<!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8"><title>Moved | Dawat-e-Islami Canada</title>
 <meta name="robots" content="noindex"><meta http-equiv="refresh" content="0; url={new}">
 <link rel="canonical" href="{new}"></head>
@@ -1224,7 +1254,9 @@ for old, new in MOVED.items():
 /services /departments 301
 /services.html /departments 301
 """)
-(ROOT / "_headers").write_text("""/*
+(ROOT / "_headers").write_text("""/assets/*
+  Cache-Control: public, max-age=604800
+/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN

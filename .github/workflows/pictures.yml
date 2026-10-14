@@ -23,6 +23,10 @@ jobs:
             [ -f "$name" ] && continue
             curl -fsSL --retry 3 -o "$name" "$url" || { echo "could not download $url"; rm -f "$name"; }
           done < sources.txt
+      - name: Make small WebP copies for fast mobile loading
+        run: |
+          pip install --quiet pillow
+          python3 tools/optimize_images.py
       - name: Rebuild pages to use the downloaded copies
         run: python3 build.py
       - name: Save

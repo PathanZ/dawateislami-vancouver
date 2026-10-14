@@ -1,7 +1,8 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" class="no-js">
 <head>
 <meta charset="utf-8">
+<script>document.documentElement.className="js"</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#12285f">
 <title>Contact | Dawat-e-Islami Canada</title>
@@ -17,8 +18,10 @@
 <link rel="icon" href="assets/img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/style.css?v=de54b04b">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&amp;family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap"></noscript>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/style.css?v=f3df98f6">
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -30,7 +33,7 @@
 </div>
 <header class="site-header">
   <div class="wrap">
-    <a class="logo" href="index.html"><img src="assets/img/logo.png" width="900" height="242" alt="Dawat-e-Islami Canada home"></a>
+    <a class="logo" href="index.html"><img src="assets/img/logo-sm.webp" width="400" height="108" alt="Dawat-e-Islami Canada home"></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav">Menu</button>
     <nav class="nav" id="nav" aria-label="Main">
       <a href="about.html">About</a>
@@ -38,7 +41,7 @@
       <a href="centres.html">Centres</a>
       <a href="events.html">Events &amp; Classes</a>
       <a href="jamia.html">Jamia</a>
-      <a href="contact.html" aria-current=page>Contact</a>
+      <a href="contact.html" aria-current="page">Contact</a>
       <a class="nav-donate" href="donate.html">Donate</a>
     </nav>
   </div>
@@ -57,27 +60,27 @@
       <form class="tile dform gform" id="contactForm"  novalidate>
         <h2 style="font-size:24px">Send us a message</h2>
         <div class="row2">
-          <div class="field"><label for="c_name">Full name</label><input id="c_name" name="name" autocomplete="name" required></div>
+          <div class="field"><label for="c_name">Full name</label><input id="c_name" type="text" name="name" autocomplete="name" required></div>
           <div class="field"><label for="c_email">Email</label><input id="c_email" name="email" type="email" autocomplete="email" required></div>
         </div>
         <div class="field"><label for="c_phone">Phone (optional)</label><input id="c_phone" name="phone" type="tel" autocomplete="tel"></div>
         <div class="field"><label for="c_msg">Your message</label><textarea id="c_msg" name="message" required></textarea><small>For a question about a centre, please mention your city.</small></div>
-        <label class="hp" aria-hidden="true">Leave empty <input name="website" tabindex="-1" autocomplete="off"></label>
+        <label class="hp" aria-hidden="true">Leave empty <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
         <p class="form-err" role="alert"></p>
         <button class="btn btn-navy wide" type="submit">Send message</button>
         <p class="done" hidden>Thank you for your message. A member of our team will reply within 1 to 2 business days.</p>
       </form>
       <aside class="side">
         <div class="tile">
-          <h3>Email</h3>
+          <h2 class="h3">Email</h2>
           <p><a href="mailto:canada@dawateislami.net">canada@dawateislami.net</a></p>
         </div>
         <div class="tile">
-          <h3>Registered office</h3>
+          <h2 class="h3">Registered office</h2>
           <p>120 - 32 Westwinds Cres NE, Calgary, AB T3J 5L3</p>
         </div>
         <div class="tile sky">
-          <h3>Volunteer with us</h3>
+          <h2 class="h3">Volunteer with us</h2>
           <p>General questions, volunteering and local centre enquiries are all welcome. We usually reply within 1 to 2 business days.</p>
         </div>
       </aside>
@@ -90,12 +93,12 @@
         <a class="btn btn-line" href="centres.html">All centres</a>
       </div>
       <div class="contact-grid">
-        <div class="tile"><h3>British Columbia</h3><ul><li><span>Surrey</span><a href="tel:+17788950886">+1 (778) 895-0886</a></li></ul></div>
-        <div class="tile"><h3>Alberta</h3><ul><li><span>Calgary</span><a href="tel:+14036185408">+1 (403) 618-5408</a></li><li><span>Edmonton</span><a href="tel:+17807296492">+1 (780) 729-6492</a></li></ul></div>
-        <div class="tile"><h3>Saskatchewan</h3><ul><li><span>Regina</span><a href="tel:+14384010782">+1 (438) 401-0782</a></li></ul></div>
-        <div class="tile"><h3>Manitoba</h3><ul><li><span>Winnipeg</span><a href="tel:+12049981979">+1 (204) 998-1979</a></li></ul></div>
-        <div class="tile"><h3>Ontario</h3><ul><li><span>East York</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Etobicoke</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Hamilton</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Ottawa</span><a href="tel:+15149837861">+1 (514) 983-7861</a></li></ul></div>
-        <div class="tile"><h3>Quebec</h3><ul><li><span>Montreal</span><a href="tel:+15149837861">+1 (514) 983-7861</a></li></ul></div>
+        <div class="tile"><h2 class="h3">British Columbia</h2><ul><li><span>Surrey</span><a href="tel:+17788950886">+1 (778) 895-0886</a></li></ul></div>
+        <div class="tile"><h2 class="h3">Alberta</h2><ul><li><span>Calgary</span><a href="tel:+14036185408">+1 (403) 618-5408</a></li><li><span>Edmonton</span><a href="tel:+17807296492">+1 (780) 729-6492</a></li></ul></div>
+        <div class="tile"><h2 class="h3">Saskatchewan</h2><ul><li><span>Regina</span><a href="tel:+14384010782">+1 (438) 401-0782</a></li></ul></div>
+        <div class="tile"><h2 class="h3">Manitoba</h2><ul><li><span>Winnipeg</span><a href="tel:+12049981979">+1 (204) 998-1979</a></li></ul></div>
+        <div class="tile"><h2 class="h3">Ontario</h2><ul><li><span>East York</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Etobicoke</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Hamilton</span><a href="tel:+16473663786">+1 (647) 366-3786</a></li><li><span>Ottawa</span><a href="tel:+15149837861">+1 (514) 983-7861</a></li></ul></div>
+        <div class="tile"><h2 class="h3">Quebec</h2><ul><li><span>Montreal</span><a href="tel:+15149837861">+1 (514) 983-7861</a></li></ul></div>
       </div>
     </div>
   </section>
@@ -104,12 +107,12 @@
   <div class="wrap">
     <div class="cols">
       <div>
-        <img class="footer-logo" src="assets/img/logo-white.png" width="900" height="242" alt="Dawat-e-Islami Canada" loading="lazy">
+        <img class="footer-logo" src="assets/img/logo-white-sm.webp" width="400" height="108" alt="Dawat-e-Islami Canada" loading="lazy">
         <p>A global, non-political movement spreading the teachings of the Qur'an and Sunnah, with 13 centres across Canada.</p>
         <p class="bn">Registered Canadian charity · BN 81933 5662 RR0001</p>
       </div>
       <div>
-        <h4>Visit</h4>
+        <h2 class="fh">Visit</h2>
         <ul>
           <li><a href="centres.html">Centres</a></li>
           <li><a href="events.html">Events</a></li>
@@ -119,7 +122,7 @@
         </ul>
       </div>
       <div>
-        <h4>Give &amp; contact</h4>
+        <h2 class="fh">Give &amp; contact</h2>
         <ul>
           <li><a href="donate.html">Donate</a></li>
           <li><a href="receipt.html">Donation receipt</a></li>
@@ -128,7 +131,7 @@
         </ul>
       </div>
       <div>
-        <h4>Dawat-e-Islami worldwide</h4>
+        <h2 class="fh">Dawat-e-Islami worldwide</h2>
         <ul>
           <li><a href="https://www.dawateislami.net/" target="_blank" rel="noopener">Dawat-e-Islami (global)</a></li>
           <li><a href="https://www.dawateislamiusa.org/" target="_blank" rel="noopener">Dawat-e-Islami USA</a></li>
@@ -145,7 +148,7 @@
     </div>
   </div>
 </footer>
-<script src="assets/events.js?v=de54b04b"></script>
-<script src="assets/main.js?v=de54b04b"></script>
+<script src="assets/events.js?v=f3df98f6"></script>
+<script src="assets/main.js?v=f3df98f6"></script>
 </body>
 </html>

@@ -4,6 +4,11 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return [].slice.call((r || document).querySelectorAll(s)); };
 
+  // If a picture fails to load, hide it neatly (the box keeps its background colour)
+  function hideBroken(im) { im.classList.add('broken'); }
+  document.addEventListener('error', function (e) { if (e.target && e.target.tagName === 'IMG') hideBroken(e.target); }, true);
+  $$('img').forEach(function (im) { if (im.complete && im.naturalWidth === 0 && im.getAttribute('src')) hideBroken(im); });
+
   // Year in footer
   var y = $('#year'); if (y) y.textContent = new Date().getFullYear();
 
@@ -62,14 +67,27 @@
     });
   });
 
-  // Centres page: "Show on map"
-  var frame = $('#mapFrame');
-  if (frame) {
+  // Maps load only when tapped (saves mobile data). "Show on map" on the centres page loads the chosen centre.
+  function loadMap(box, url) {
+    if (url) box.setAttribute('data-map', url);
+    var f = document.createElement('iframe');
+    f.src = box.getAttribute('data-map').replace(/&amp;/g, '&');
+    f.title = box.getAttribute('data-title') || 'Map';
+    f.loading = 'lazy';
+    f.referrerPolicy = 'no-referrer-when-downgrade';
+    box.innerHTML = ''; box.appendChild(f);
+  }
+  $$('.map[data-map]').forEach(function (box) {
+    var b = $('.map-load', box);
+    if (b) b.addEventListener('click', function () { loadMap(box); });
+  });
+  var mapBox = $('#mapFrame');
+  if (mapBox) {
     $$('.map-btn').forEach(function (a) {
       a.addEventListener('click', function (ev) {
         ev.preventDefault();
         var q = a.getAttribute('data-q');
-        frame.src = 'https://www.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed';
+        loadMap(mapBox, 'https://www.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed');
         $('#mapName').textContent = a.getAttribute('data-name');
         $('#mapAddr').textContent = q;
         $('#map').scrollIntoView({ behavior: 'smooth', block: 'start' });
