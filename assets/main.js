@@ -60,3 +60,18 @@
     }).join('');
   });
 })();
+
+// Centres page: "Show on map" swaps the map to that centre
+(function () {
+  var frame = document.getElementById('mapFrame');
+  if (!frame) return;
+  var label = document.getElementById('mapName');
+  document.querySelectorAll('.map-btn').forEach(function (b) {
+    b.addEventListener('click', function (ev) {
+      ev.preventDefault();
+      frame.src = 'https://www.google.com/maps?q=' + b.getAttribute('data-q') + '&output=embed';
+      label.textContent = b.getAttribute('data-name');
+      document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+})();

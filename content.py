@@ -49,6 +49,17 @@ CENTRES = [
 ]
 
 # ---- Services (id, icon, title, short text, longer text) -----------------------
+
+# Jamia-tul-Madina (Islamic university) campuses. Use "TBD" for anything not yet confirmed.
+JAMIAS = [
+    {"province": "Quebec", "city": "Montreal", "name": "Jamia-tul-Madina Montreal",
+     "address": "TBD", "phone": "TBD", "site": "", "note": "",
+     "info": "Islamic university offering the Dars-e-Nizami (Aalim) course."},
+    {"province": "Ontario", "city": "Cornwall", "name": "Jamia-tul-Madina Cornwall",
+     "address": "500 York St, Cornwall, ON", "phone": "TBD", "site": "https://jamiatulmadina.ca/", "note": "",
+     "info": "Dawat-e-Islami Canada's new permanent Jamia-tul-Madina campus."},
+]
+
 SERVICES = [
     ("weekly-ijtima", "ijtima", "Weekly Ijtima",
      "Weekly gatherings with tilawat, naat, bayan, zikr and dua.",
@@ -75,8 +86,8 @@ SERVICES = [
      "Guidance and duas from the Qur'an and Sunnah.",
      "The spiritual cure service offers comfort and guidance to people facing difficulty, through Qur'anic and prophetic remedies and duas."),
     ("jamia", "jamia", "Jamia-tul-Madina",
-     "Scholarly training, in Montreal, Quebec.",
-     "Jamia-tul-Madina is Dawat-e-Islami's Islamic seminary. In Canada it is producing scholars in Montreal, Quebec."),
+     "Scholarly training, in Montreal and Cornwall.",
+     "Jamia-tul-Madina is Dawat-e-Islami's Islamic seminary. In Canada it has campuses in Montreal, Quebec and Cornwall, Ontario."),
     ("online-academy", "online", "Faizan Online Academy",
      "Live online Qur'an and Islamic studies classes.",
      "Faizan Online Academy offers live online classes in Qur'an reading, tajweed and Islamic studies, so you can learn from home."),
@@ -88,7 +99,7 @@ DEPARTMENTS = [
     ("Madrasa-tul-Madina for Girls", "Free Qur'an reading, tajweed and Hifz classes for girls, taught by female teachers."),
     ("Madrasa-tul-Madina for Adults", "Qur'an classes for adult brothers and sisters, at any level."),
     ("Faizan Weekly Islamic School", "Weekend Islamic education for children in public school."),
-    ("Jamia-tul-Madina", "Training future Islamic scholars, in Montreal, Quebec."),
+    ("Jamia-tul-Madina", "Training future Islamic scholars, in Montreal and Cornwall."),
     ("Islamic Courses", "Short courses on the essentials of Islamic knowledge and practice."),
     ("Dar-ul-Ifta Ahl-e-Sunnat", "Answers to religious questions from qualified muftis."),
     ("Spiritual Cures", "Comfort and guidance through Qur'anic and prophetic remedies."),

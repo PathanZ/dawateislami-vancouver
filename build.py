@@ -196,19 +196,36 @@ def slug(s):
     return s.lower().replace(" ", "-")
 
 
-def centre_card(c):
-    q = c["address"].replace(" ", "+")
-    note = f'<p class="note">{c["note"]}</p>' if c["note"] else ""
-    site = (f'<a class="when" href="{c["site"]}" target="_blank" rel="noopener">Centre website →</a>'
+TBD = '<span class="tbd">TBD</span>'
+
+
+def map_query(c):
+    """What to search for on Google Maps: the address, or the name and city if the address isn't known yet."""
+    q = c["address"] if c["address"] != "TBD" else f'{c["name"]}, {c["city"]}'
+    return q.replace(" ", "+").replace("&", "%26")
+
+
+def centre_card(c, map_btn=False):
+    q = map_query(c)
+    note = f'<p class="note">{c["note"]}</p>' if c.get("note") else ""
+    info = f'<p class="info">{c["info"]}</p>' if c.get("info") else ""
+    addr = f"Address: {TBD}" if c["address"] == "TBD" else c["address"]
+    phone = (f'<p class="phone">Phone: {TBD}</p>' if c["phone"] == "TBD" else
+             f'<p class="phone"><a href="tel:{tel(c["phone"])}">{c["phone"]}</a></p>')
+    site = (f'<a class="when" href="{c["site"]}" target="_blank" rel="noopener">Website →</a>'
             if c["site"] else "")
+    show = (f'<a href="#map" class="when map-btn" data-q="{q}" data-name="{c["name"]}, {c["city"]}">Show on map</a>'
+            if map_btn else "")
     return f'''        <article class="program centre">
-          <div class="ic">{svg("pin")}</div>
+          <div class="ic">{svg("jamia" if c["name"].startswith("Jamia") else "pin")}</div>
           <p class="city-prov">{c["city"]}</p>
           <h3>{c["name"]}</h3>
-          <p>{c["address"]}</p>
+          {info}
+          <p>{addr}</p>
           {note}
-          <p class="phone"><a href="tel:{tel(c["phone"])}">{c["phone"]}</a></p>
+          {phone}
           <div class="centre-links">
+            {show}
             <a class="when" href="https://www.google.com/maps/search/?api=1&amp;query={q}" target="_blank" rel="noopener">Directions →</a>
             {site}
           </div>
@@ -406,7 +423,7 @@ def about():
   <section class="block" id="canada">
     <div class="wrap narrow">
 {section_head("In Canada", "Dawat-e-Islami Canada")}
-      <p>Dawat-e-Islami has {len(CENTRES)} centres across Canada, in British Columbia, Alberta, Saskatchewan, Manitoba, Ontario and Quebec. Through Jamia-tul-Madina in Montreal, Quebec, it is also producing the next generation of scholars.</p>
+      <p>Dawat-e-Islami has {len(CENTRES)} centres across Canada, in British Columbia, Alberta, Saskatchewan, Manitoba, Ontario and Quebec. Through its Jamia-tul-Madina campuses in Montreal and Cornwall, it is also training the next generation of scholars.</p>
       <ul class="tick-list">
         <li>Weekly Islamic gatherings for brothers and sisters</li>
         <li>Zikr sessions</li>
@@ -475,15 +492,27 @@ def centres_page():
     provs = list(dict.fromkeys(c["province"] for c in CENTRES))
     groups = []
     for prov in provs:
-        cards = "\n".join(centre_card(c) for c in CENTRES if c["province"] == prov)
+        cards = "\n".join(centre_card(c, True) for c in CENTRES if c["province"] == prov)
         groups.append(f'''    <h2 class="prov" id="{slug(prov)}">{prov}</h2>
     <div class="programs centres-grid">
 {cards}
     </div>''')
-    jump = "".join(f'<a href="#{slug(p)}">{p}</a>' for p in provs)
+    jcards = "\n".join(centre_card(c, True) for c in JAMIAS)
+    groups.append(f'''    <h2 class="prov" id="jamia">Jamia-tul-Madina</h2>
+    <p class="muted prov-intro">Dawat-e-Islami's Islamic university, training the next generation of scholars.</p>
+    <div class="programs centres-grid">
+{jcards}
+    </div>''')
+    jump = "".join(f'<a href="#{slug(p)}">{p}</a>' for p in provs) + '<a href="#jamia">Jamia-tul-Madina</a>'
+    first = CENTRES[0]
     return f'''<main id="main">
-{page_head("Our centres in Canada", f"{len(CENTRES)} Faizan-e-Madina centres of Dawat-e-Islami across Canada", "Centres")}
+{page_head("Our centres in Canada", f"{len(CENTRES)} Faizan-e-Madina centres and {len(JAMIAS)} Jamia-tul-Madina campuses across Canada", "Centres")}
   <div class="wrap pt-main">
+    <div class="centre-map" id="map">
+      <div class="centre-map-bar"><span class="muted">Showing</span> <b id="mapName">{first["name"]}, {first["city"]}</b></div>
+      <div class="map-slot"><iframe id="mapFrame" title="Map of the selected centre" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q={map_query(first)}&amp;output=embed"></iframe></div>
+      <p class="muted map-hint">Tap <b>Show on map</b> on any centre below to see it here.</p>
+    </div>
     <nav class="jump" aria-label="Provinces">{jump}</nav>
 {chr(10).join(groups)}
     <p class="muted centres-note">Is a centre missing or out of date? Email <a href="mailto:{EMAIL}">{EMAIL}</a>.</p>
